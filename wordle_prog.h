@@ -12,7 +12,7 @@
 #include "debug.h"
 
 // ——————————————————— enum flags —————————
-enum class GameState {NONE,PLAYING,WON,LOST,};
+enum class GameState { NONE,PLAYING,WON,LOST };
 enum class LetterState {NONE,
   INCORRECT, // gray   []
   PARTIAL,   // yellow []
@@ -24,20 +24,24 @@ enum class Page {
   DIFF_MENU,
   GAME_HUD,
   RESULTS_HUD,
-  numPages,
+
+
+  numPages, // total # flag
 };
-enum class Gamemode {
-  REGULAR, // regular wordle game: 6 limited guesses, unlimited time, and 5-letter words.
-  SPEED,   // unlimited guesses, limited time, and 5-8 letter words.
-  DEATHMATCH, // get # of words correct under # of guesses in a limited time.
-  numGamemodes,
+
+// regular wordle game: 6 limited guesses, unlimited time, and 5-letter words.
+// unlimited guesses, limited time, and 5-8 letter words.
+// get # of words correct under # of guesses in a limited time.
+enum class Gamemode { REGULAR,SPEED,DEATHMATCH, 
+
+
+  numGamemodes, // total # flag
 };
-enum class Difficulty {
-  EASY,
-  INTERMEDIATE,
-  EXPERT,
-  NIGHTMARE,
-  numDiffs,};
+enum class Difficulty { NORMAL,MODERATE,EXPERT,HARDCORE,
+
+
+  numDiffs, // total # flag
+};
 // ————————————————————————————————————————
 
 
@@ -75,7 +79,17 @@ extern const char* const wordGuesses[]; // record of letter arrangement guesses.
 
 
 // ——————————————————— functions ——————————
+bool WordleMode();
+bool SpeedMode();
+bool DeathmatchMode();
+
+bool Normal();
+bool Moderate();
+bool Expert();
+bool Hardcore();
+
 void update_Screen();
+void update_Status();
 
 bool WordValid(const char guess[],const size_t wordLength);
 bool CorrectWord(const char guess[],const char secret[]);

@@ -24,4 +24,5 @@ void Automatic_Response() {
     // DEBUG_ButtonPress();
     update_Screen();
   }
+  update_Status();
 }

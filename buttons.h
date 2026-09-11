@@ -18,7 +18,7 @@ struct Button {
 };
 // ————————————————————————————————————————————————
 
-// ——————————————————— macros —
+// ——————————————————— settings ———————————
 #define MIN_DIAL_SPEED 1
 #define MAX_DIAL_SPEED 3
 #define DIAL_STEPPING 10
@@ -26,7 +26,7 @@ struct Button {
 #define DEBOUNCE_DELAY 25
 #define HOLD_DELAY 350
 #define HOLD_REPEAT_RATE 100
-// ————————————————————————————
+// ————————————————————————————————————————
 
 // ——————————————————— number positioning —
 extern Button buttons[];
@@ -35,7 +35,8 @@ extern byte numButtons;
 extern ButtonAction currentAction;
 // ————————————————————————————————————————
 
-// ——————————————————— functions —
+// ——————————————————— functions ——————————
+// bool flags
 bool Cnfrm();
 bool Up();
 bool Dwn();
@@ -43,13 +44,16 @@ bool Lft();
 bool Rgt();
 bool NoResp();
 
+// toggle flags
 int UpDwn();
 int LftRgt();
 
+// buffer control
 void Scrolling(int *cursorPos,int maximum,int dir);
 
+// utility functions
 void Init_Buttons();
 ButtonAction GetButtonPress();
-// ———————————————————————————————
+// ————————————————————————————————————————
 
 #endif

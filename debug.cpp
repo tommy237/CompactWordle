@@ -37,7 +37,7 @@ void DEBUG_Indicators() {
 }
 
 void DEBUG_CharSelect() {
-  if (DEBUG_ON() && currentAction!=ButtonAction::CNFRM) {  
+  if (DEBUG_ON() && Cnfrm()) {  
     Serial.print("LetterPos: "); Serial.print(letterPos);
     Serial.print(" | CharPos: "); Serial.print(charPos);
     Serial.print(" | Arrangement: ");
@@ -76,10 +76,10 @@ void DEBUG_Difficulty() {
   if (DEBUG_ON()) {
     Serial.print("Difficulty: ");
     switch(static_cast<Difficulty>(charPos)) {
-      case Difficulty::EASY: Serial.println("*    (EASY)"); break;
-      case Difficulty::INTERMEDIATE: Serial.println("**   (INTERMEDIATE)"); break;
+      case Difficulty::NORMAL: Serial.println("*    (NORMAL)"); break;
+      case Difficulty::MODERATE: Serial.println("**   (MODERATE)"); break;
       case Difficulty::EXPERT: Serial.println("***  (EXPERT)"); break;
-      case Difficulty::NIGHTMARE: Serial.println("**** (NIGHTMARE)"); break;
+      case Difficulty::HARDCORE: Serial.println("**** (HARDCORE)"); break;
     }
   }
 }

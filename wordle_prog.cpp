@@ -6,7 +6,7 @@ const char* const wordGuesses[] PROGMEM={}; // current words already guessed.
 Page pageNum=Page::MAIN_MENU;               // current page
 GameState gameStatus=GameState::NONE;       // current result
 Gamemode gameMode=Gamemode::REGULAR;
-Difficulty difficulty=Difficulty::EASY;
+Difficulty difficulty=Difficulty::NORMAL;
 // ————————————————————————————————————————
 
 // ——————————————————— number positioning —
@@ -19,6 +19,7 @@ char secretWord[10];
 char arrangement[6]={};      // current letter arrangement
 LetterState indicator[6]={}; // current letter indicators
 size_t guesses=0;
+size_t totalWords=WC5;
 
 // ——————— SPEED —————————————————————
 size_t points=0;
@@ -28,22 +29,40 @@ size_t wGuesses=0; // wrongGuesses;
 size_t guessesLeft=0;
 size_t cGuessesNeeded=0;
 size_t cGuesses=0;
+// ————————————————————————————————————————
+
+// ——————————————————— function headers ———
+void goto_MainMenu();
+void goto_GamemodePage();
+// ————————————————————————————————————————
 
 // Chooses a random word from the word bank depending on the # of letters.
 void RandomWord(char *buffer,size_t bufferSize,int wordSize) {
-  const size_t totalWords=WC5;
-  size_t randomIndex=random(totalWords);
-  strncpy_P(buffer,words5[randomIndex],bufferSize-1);
+  switch (wordSize) {
+    case 7: totalWords=WC7; break;
+    case 6: totalWords=WC6; break;
+    default: totalWords=WC5; break;
+  }
+  size_t rIndex=random(totalWords);
+  switch (wordSize) {
+    case 7: strncpy_P(buffer,words7[rIndex],bufferSize-1); break;
+    case 6: strncpy_P(buffer,words6[rIndex],bufferSize-1); break;
+    default: strncpy_P(buffer,words5[rIndex],bufferSize-1); break;
+  }
   buffer[bufferSize-1]='\0';
 }
 
 // Checks to see if the word exists from the word bank.
-bool WordValid(const char guess[],const size_t wordLength) {
+bool WordValid(const char guess[]) {
   bool isValid=false;
-  uint16_t numWords=WC5;
-  for (size_t i=0;i<numWords;i++) {
+  for (size_t i=0;i<totalWords;i++) {
     char currentWord[wordLength+1];
-    strncpy_P(currentWord,words5[i],sizeof(currentWord)-1);
+    // strncpy_P(currentWord,words5[i],sizeof(currentWord)-1);
+    switch (wordLength) {
+      case 7: strncpy_P(currentWord,words7[i],sizeof(currentWord)-1); break;
+      case 6: strncpy_P(currentWord,words6[i],sizeof(currentWord)-1); break;
+      default: strncpy_P(currentWord,words5[i],sizeof(currentWord)-1); break;
+    }
     currentWord[sizeof(currentWord)-1]='\0';
     size_t numLetters=strlen(currentWord)+1;
     if (numLetters!=(wordLength+1)) continue;
@@ -60,7 +79,7 @@ bool CorrectWord(const char guess[],const char secret[]) {
   const size_t sLen=strlen(secret);
   if (gLen!=sLen) return false;
   size_t lettersCorrect=0;
-  for (size_t i=0;i<5;i++) {
+  for (size_t i=0;i<wordLength;i++) {
     const char g=guess[i];
     const char sc=secret[i];
     if (g==sc) {
@@ -100,10 +119,10 @@ bool WordleMode() { return gameMode==Gamemode::REGULAR; }
 bool SpeedMode() { return gameMode==Gamemode::SPEED; }
 bool DeathmatchMode() { return gameMode==Gamemode::DEATHMATCH; }
 
-bool Easy() { return difficulty==Difficulty::EASY; }
-bool Intermediate() { return difficulty==Difficulty::INTERMEDIATE; }
+bool Normal() { return difficulty==Difficulty::NORMAL; }
+bool Moderate() { return difficulty==Difficulty::MODERATE; }
 bool Expert() { return difficulty==Difficulty::EXPERT; }
-bool Nightmare() { return difficulty==Difficulty::NIGHTMARE; }
+bool Hardcore() { return difficulty==Difficulty::HARDCORE; }
 
 // ————————————————————————————————————————————————
 // ——————————————————— button seeking —————————————
@@ -112,7 +131,7 @@ bool Nightmare() { return difficulty==Difficulty::NIGHTMARE; }
 void SeekLetter() {
   if (!NoResp()) {
     int alphaRange=(MAX_ALPHABET-MIN_ALPHABET);
-    int ud=UpDwn();
+    int ud=(-UpDwn());
     int lr=LftRgt();
     size_t guessSize=LENG(arrangement);
     // DEBUG_Direction();
@@ -122,7 +141,7 @@ void SeekLetter() {
       arrangement[charPos]=(letterPos-1)+MIN_ALPHABET; // selects the char from the letterPos.
     } else if (lr!=0) { // USER presses LEFT or RIGHT.
       int offset=(charPos+lr);
-      int nextIndex=((offset<0)?(5-1):offset)%5; // safeguard index from 0 to # of letters in current word.
+      int nextIndex=((offset<0)?(wordLength-1):offset)%wordLength; // safeguard index from 0 to # of letters in current word.
       char rawLetter=arrangement[nextIndex];
       int nextLetter=((rawLetter)-MIN_ALPHABET)+1;
       if (rawLetter=='\0') {nextLetter=0;}
@@ -198,10 +217,10 @@ void PlayGame() {
       // ———————— WORDLE ———————— //
       } else {
         guessesLeft=6;
-        int diffWordLen[]={5,6,7,8};
+        int diffWordLen[]={5,6,6,7};
         wordLength=diffWordLen[diffIndex];
       }
-      RandomWord(secretWord,sizeof(secretWord),5);
+      RandomWord(secretWord,sizeof(secretWord),wordLength);
       if (DEBUG_ON()) {
         // Serial.print("The secret word is.. "); Serial.println(secretWord);
         Serial.println(" ——————————— ——————————— ——————————— ");
@@ -216,12 +235,27 @@ void PlayGame() {
     }
   }
 }
+
+void update_Status() {
+  if (pageNum==Page::RESULTS_HUD) return;
+  if (!IsPlaying()) return;
+  if (!WordleMode()) {
+    if (NoTime()) {
+      GameLose();
+    }
+  } else {
+    if (guesses>=6) {
+      GameLose();
+    }
+  }
+}
+
 void update_GameHud() {
   SeekLetter();
-  DEBUG_CharSelect();
+  // DEBUG_CharSelect();
 
   if (Cnfrm()) {
-    bool valid=WordValid(arrangement,5);
+    bool valid=WordValid(arrangement);
     if (DEBUG_ON()) {
       Serial.print("Is a valid word? ");
       Serial.println(valid);
@@ -237,10 +271,6 @@ void update_GameHud() {
       }
     }
   }
-
-  if (NoTime() && IsPlaying() && Won()) {
-    GameLose();
-  }
 }
 // ——————————————————————————————————————————————— MAIN GAME
 // —————————————————————————————————————————————————————————
@@ -249,12 +279,13 @@ void update_GameHud() {
 // ——————————————————————————————————————————————— DIFFICULTY PAGE
 void goto_DiffPage() {
   pageNum=Page::DIFF_MENU;
-  Serial.println("Select difficulty level! <- ->");
+  // Serial.println("Select difficulty level! <- ->");
 }
 void update_DiffPage() {
   int numDiffs=static_cast<int>(Difficulty::numDiffs);
   Scrolling(&charPos,numDiffs,-UpDwn());
-  if (LftRgt()==0) { DEBUG_Difficulty(); }
+  // if (LftRgt()==0) { DEBUG_Difficulty(); }
+  if (LftRgt()==-1) goto_GamemodePage();
   if (Cnfrm()) {
     difficulty=static_cast<Difficulty>(charPos);
     ResetPos();
@@ -267,12 +298,13 @@ void update_DiffPage() {
 // ——————————————————————————————————————————————— GAMEMODE PAGE
 void goto_GamemodePage() {
   pageNum=Page::GAMEMODE_MENU;
-  Serial.println("Choose your gamemode! <- ->");
+  // Serial.println("Choose your gamemode! <- ->");
 }
 void update_GamemodePage() {
   int numModes=static_cast<int>(Gamemode::numGamemodes);
   Scrolling(&charPos,numModes,-UpDwn());
-  if (LftRgt()==0) { DEBUG_Gamemode(); }
+  // if (LftRgt()==0) { DEBUG_Gamemode(); }
+  if (LftRgt()==-1) goto_MainMenu();
   if (Cnfrm()) {
     gameMode=static_cast<Gamemode>(charPos);
     ResetPos();
@@ -296,7 +328,8 @@ void goto_MainMenu() {
   guesses=0;
 }
 void update_MainMenu() {
-  if (Cnfrm()) {
+  Scrolling(&charPos,4,-UpDwn());
+  if (Cnfrm()&&(charPos==0)) {
     goto_GamemodePage();
   }
 }
@@ -315,7 +348,7 @@ void print_Results() {
 }
 
 void update_Screen() {
-  DEBUG_PageNum();
+  // DEBUG_PageNum();
   switch (pageNum) {
     case Page::MAIN_MENU: update_MainMenu(); break;
     case Page::GAMEMODE_MENU: update_GamemodePage(); break;
