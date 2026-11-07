@@ -3,7 +3,10 @@
 #define __WORDLE_H__
 #define __ASSERT_USE_STDERR
 
+<<<<<<< HEAD
 // ——————————————————— headers ————————————
+=======
+>>>>>>> a40aaa0efd75482f02dc602d369ae940ad17631c
 #include <Arduino.h>
 #include <assert.h>
 #include "buttons.h"
@@ -11,9 +14,12 @@
 #include "word_bank.h"
 #include "game_timer.h"
 #include "debug.h"
+<<<<<<< HEAD
 // ————————————————————————————————————————
 
 
+=======
+>>>>>>> a40aaa0efd75482f02dc602d369ae940ad17631c
 
 // ——————————————————— enum flags —————————
 enum class GameState { NONE,PLAYING,WON,LOST };
@@ -23,6 +29,7 @@ enum class LetterState {NONE,
   MATCH,     // green  []
 };
 enum class Page {
+<<<<<<< HEAD
   TITLE,
   MAIN_MENU,
   GAMEMODE_SELECT,
@@ -34,12 +41,22 @@ enum class Page {
   STATS,
   RANKS,
   CONFIG,
+=======
+  MAIN_MENU,
+  GAMEMODE_MENU,
+  DIFF_MENU,
+  GAME_HUD,
+  RESULTS_HUD,
+
+
+>>>>>>> a40aaa0efd75482f02dc602d369ae940ad17631c
   numPages, // total # flag
 };
 
 // regular wordle game: 6 limited guesses, unlimited time, and 5-letter words.
 // unlimited guesses, limited time, and 5-8 letter words.
 // get # of words correct under # of guesses in a limited time.
+<<<<<<< HEAD
 /*
     < SPEEDMODE >
     Unlimited guesses, but limited time to guess a single word.
@@ -62,11 +79,22 @@ enum class Gamemode {
 };
 enum class Difficulty { 
   NORMAL,MODERATE,EXPERT,HARDCORE,ENDLESS,
+=======
+enum class Gamemode { REGULAR,SPEED,DEATHMATCH, 
+
+
+  numGamemodes, // total # flag
+};
+enum class Difficulty { NORMAL,MODERATE,EXPERT,HARDCORE,
+
+
+>>>>>>> a40aaa0efd75482f02dc602d369ae940ad17631c
   numDiffs, // total # flag
 };
 // ————————————————————————————————————————
 
 
+<<<<<<< HEAD
 
 // ——————————————————— program flags ——————
 extern GameState game_status;
@@ -87,6 +115,16 @@ bool CheckDiff(Difficulty diff);
 
 
 
+=======
+// ——————————————————— program flags ——————
+extern GameState gameStatus;
+extern Page pageNum;
+extern Gamemode gameMode;
+extern Difficulty difficulty;
+// ————————————————————————————————————————
+
+
+>>>>>>> a40aaa0efd75482f02dc602d369ae940ad17631c
 // ——————————————————— number positioning —
 extern size_t guesses;  // current # of guesses in game.
 extern int scrollSpeed; // speed of char scrolling when holding.
@@ -96,7 +134,10 @@ extern size_t wordLength;
 // ————————————————————————————————————————
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> a40aaa0efd75482f02dc602d369ae940ad17631c
 // ——————————————————— array-ngements —————
 extern char arrangement[];              // current letter arrangement.
 extern LetterState indicator[];         // current letter indicators.
@@ -104,7 +145,10 @@ extern const char* const wordGuesses[]; // record of letter arrangement guesses.
 // ————————————————————————————————————————
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> a40aaa0efd75482f02dc602d369ae940ad17631c
 // ——————————————————— macros —————————————
 #define MIN_WORD_LENGTH 5
 #define MAX_WORD_LENGTH 8
@@ -114,6 +158,7 @@ extern const char* const wordGuesses[]; // record of letter arrangement guesses.
 // ————————————————————————————————————————
 
 
+<<<<<<< HEAD
 
 // ——————————————————— functions ——————————
 void update_Screen();
@@ -128,6 +173,21 @@ void* GetSecretWord();
 void OnWait();
 
 bool GetLastWordValid();
+=======
+// ——————————————————— functions ——————————
+bool WordleMode();
+bool SpeedMode();
+bool DeathmatchMode();
+
+bool Normal();
+bool Moderate();
+bool Expert();
+bool Hardcore();
+
+void update_Screen();
+void update_Status();
+
+>>>>>>> a40aaa0efd75482f02dc602d369ae940ad17631c
 bool WordValid(const char guess[],const size_t wordLength);
 bool CorrectWord(const char guess[],const char secret[]);
 void RandomWord(char *buffer,size_t bufferSize,int wordSize);

@@ -10,6 +10,7 @@ Button buttons[]={
 int scrollSpeed=MIN_DIAL_SPEED;
 byte numButtons=sizeof(buttons)/sizeof(buttons[0]);
 ButtonAction currentAction;
+<<<<<<< HEAD
 bool buttonLock=false;
 
 // ——————————————————— functions —
@@ -17,6 +18,11 @@ bool buttonLock=false;
 bool OnLocked() { return buttonLock; }
 void LockButtons(bool toggle) { buttonLock=toggle; }
 
+=======
+
+// ——————————————————— functions —
+// returns if user pressed confirm button;
+>>>>>>> a40aaa0efd75482f02dc602d369ae940ad17631c
 bool Cnfrm() { return currentAction==ButtonAction::CNFRM; }
 bool Up() { return currentAction==ButtonAction::UP; }
 bool Dwn() { return currentAction==ButtonAction::DWN; }
@@ -42,6 +48,7 @@ void Init_Buttons() {
 }
 
 ButtonAction GetButtonPress() {
+<<<<<<< HEAD
   const unsigned long ms=millis();
   ButtonAction triggered=ButtonAction::NONE;
   if (buttonLock) return triggered;
@@ -55,21 +62,46 @@ ButtonAction GetButtonPress() {
                released=(state==HIGH && above_deb);
     if (pressed) {
       if (above_deb) {
+=======
+  unsigned long ms=millis();
+  ButtonAction triggered=ButtonAction::NONE;
+  for (byte e=0;e<numButtons;e++) {
+    Button *btn=&buttons[e];
+    int state=digitalRead(btn->PIN);
+    unsigned long msDiff=(ms-btn->LAST_DB_TIME);
+    bool aboveThres=(msDiff>DEBOUNCE_DELAY);
+    bool justPressed=(btn->LAST==HIGH && state==LOW);
+    bool isHolding=(btn->LAST==LOW && state==LOW);
+    bool justReleased=(state==HIGH && aboveThres);
+    if (justPressed) {
+      if (aboveThres) {
+>>>>>>> a40aaa0efd75482f02dc602d369ae940ad17631c
         triggered=btn->ACTION;
         btn->LAST_DB_TIME=ms;
         btn->LAST=LOW;
         btn->REPEATING=false;
       }
+<<<<<<< HEAD
     } else if (holding) {
       if (btn->TOGGLE==ButtonToggle::HOLD) {
         if (!(btn->REPEATING)) {
           if (diff>=HOLD_DELAY) {
+=======
+    } else if (isHolding) {
+      if (btn->TOGGLE==ButtonToggle::HOLD) {
+        if (!(btn->REPEATING)) {
+          if (msDiff>=HOLD_DELAY) {
+>>>>>>> a40aaa0efd75482f02dc602d369ae940ad17631c
             triggered=btn->ACTION;
             btn->LAST_DB_TIME=ms;
             btn->REPEATING=true;
           }
         } else {
+<<<<<<< HEAD
           if (diff>=HOLD_REPEAT_RATE) {
+=======
+          if (msDiff>=HOLD_REPEAT_RATE) {
+>>>>>>> a40aaa0efd75482f02dc602d369ae940ad17631c
             triggered=btn->ACTION;
             btn->LAST_DB_TIME=ms;
             btn->C++;
@@ -81,7 +113,11 @@ ButtonAction GetButtonPress() {
           }
         }
       }
+<<<<<<< HEAD
     } else if (released) {
+=======
+    } else if (justReleased) {
+>>>>>>> a40aaa0efd75482f02dc602d369ae940ad17631c
       if (btn->REPEATING) {
         btn->C=0;
         scrollSpeed=MIN_DIAL_SPEED;

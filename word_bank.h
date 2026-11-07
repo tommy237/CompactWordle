@@ -1,6 +1,7 @@
 #ifndef __WORDBANK_H__
 #define __WORDBANK_H__
 
+<<<<<<< HEAD
 // ——————————————————— headers ———————————— //
 #include <avr/pgmspace.h>
 // ——————————————————— headers ———————————— //
@@ -18,6 +19,11 @@ struct WordPack {
 // ——————————————————— structures ———— //
 
 // ——————————————————— word lists ————————— //
+=======
+#include <avr/pgmspace.h>
+#define LENG(_x) sizeof(_x)/sizeof(_x[0])
+
+>>>>>>> a40aaa0efd75482f02dc602d369ae940ad17631c
 const char words5[][6] PROGMEM={
   "APPLE","BEACH","CHIPS","DREAM","EARTH","PLANT","SMILE","CLOUD","FLAME","OCEAN","RIVER","STONE","STORM","TREES",
   "WATER","PHONE","MOUSE","BREAD","CABLE","CHAIR","CRATE","GRASS","GREEN","SOLAR","BLOOM","FROST","SHORE","SPACE",
@@ -33,6 +39,10 @@ const char words5[][6] PROGMEM={
   "ROUTE","SCALE","SCENE","SCORE","SHARK","SLEEP","SMOKE","SOUTH","SOUND","TRAIN","TWICE","VOICE","WATCH","WHEEL",
   "WORLD","ZEBRA","ACTOR","MUGIN","MUGEN","HUGIN","BURQA","NYMPH","OUIJA","VOZHD","WAQFS","IAMBI","MACAW","OKAPI",
 };
+<<<<<<< HEAD
+=======
+
+>>>>>>> a40aaa0efd75482f02dc602d369ae940ad17631c
 const char words6[][7] PROGMEM={
   "CAMERA","BOTTLE","BUTTON","CHARGE","PENCIL","HEATER","BANNER","WANDER","CRATER","MIRROR","MARKER",
   "ACTION","ANIMAL","ATTACK","AUTUMN","BARKED","BASKET","BEAUTY","BEAVER","BEFORE","BELONG","PHOTOS",
@@ -46,6 +56,10 @@ const char words6[][7] PROGMEM={
   "SENSOR","TYRANT","PARROT","WALRUS","WHEELS","VISION","OBJECT","LOCATE","GALAXY","SECOND","SONDER",
   "FUDGEL","WORDLE","BLITHE","ACUMEN","ZEALOT","MIASMA","CHRISM","NIMBLE","SCHIST","UMLAUT","COCCYX",
 };
+<<<<<<< HEAD
+=======
+
+>>>>>>> a40aaa0efd75482f02dc602d369ae940ad17631c
 const char words7[][8] PROGMEM={
   "PICTURE","MONITOR","PITCHER","LABELER","SANCTUS","COASTER","POPCORN","CHEETAH","LEOPARD",
   "BATTERY","CHASSIS","PROJECT","PLASTIC","HANDSAW","PRINTER","SPRAYER","QUALIFY","QUALITY",
@@ -61,6 +75,7 @@ const char words7[][8] PROGMEM={
   "GLACIER","LAUGHED","GOGGLES","GORILLA","GRAVITY","GROCERY","HALFWAY","HAMMOCK","HARVEST",
   "BRUSQUE","ERUDITE","ASCETIC","DEBACLE","ALPHARD","PERFECT","DIVIDED","SEQUOIA","SORGHUM",
 };
+<<<<<<< HEAD
 // ——————————————————— word lists ————————— //
 
 // ——————————————————— word packs ————————— //
@@ -70,5 +85,17 @@ const WordPack word_packs[3]={
   {.bank=(const char*)words7,.total=LENG(words7),.leng=7},
 };
 // ——————————————————— word packs ————————— //
+=======
+
+const char words8[][9] PROGMEM={
+
+};
+
+// word count
+const uint16_t WC5=LENG(words5); 
+const uint16_t WC6=LENG(words6);
+const uint16_t WC7=LENG(words7); 
+// const size_t WC8=LENG(words8);
+>>>>>>> a40aaa0efd75482f02dc602d369ae940ad17631c
 
 #endif
