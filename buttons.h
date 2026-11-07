@@ -1,17 +1,12 @@
 #ifndef __BUTTONS_H__
 #define __BUTTONS_H__
 
-<<<<<<< HEAD
 // ——————————————————— headers ————————————
 #include <Arduino.h>
 #include <assert.h>
 // ————————————————————————————————————————
 
 
-=======
-#include <Arduino.h>
-#include <assert.h>
->>>>>>> a40aaa0efd75482f02dc602d369ae940ad17631c
 
 // ——————————————————— button object & enum flags —
 enum class ButtonAction { NONE,UP,DWN,LFT,RGT,CNFRM };
@@ -27,11 +22,8 @@ struct Button {
 };
 // ————————————————————————————————————————————————
 
-<<<<<<< HEAD
 
 
-=======
->>>>>>> a40aaa0efd75482f02dc602d369ae940ad17631c
 // ——————————————————— settings ———————————
 #define MIN_DIAL_SPEED 1
 #define MAX_DIAL_SPEED 3
@@ -42,11 +34,8 @@ struct Button {
 #define HOLD_REPEAT_RATE 100
 // ————————————————————————————————————————
 
-<<<<<<< HEAD
 
 
-=======
->>>>>>> a40aaa0efd75482f02dc602d369ae940ad17631c
 // ——————————————————— number positioning —
 extern Button buttons[];
 extern int scrollSpeed;
@@ -54,15 +43,11 @@ extern byte numButtons;
 extern ButtonAction currentAction;
 // ————————————————————————————————————————
 
-<<<<<<< HEAD
 
 
 // ——————————————————— functions ——————————
 bool OnLocked();
 
-=======
-// ——————————————————— functions ——————————
->>>>>>> a40aaa0efd75482f02dc602d369ae940ad17631c
 // bool flags
 bool Cnfrm();
 bool Up();
@@ -81,10 +66,7 @@ void Scrolling(int *cursorPos,int maximum,int dir);
 // utility functions
 void Init_Buttons();
 ButtonAction GetButtonPress();
-<<<<<<< HEAD
 void LockButtons(bool toggle);
-=======
->>>>>>> a40aaa0efd75482f02dc602d369ae940ad17631c
 // ————————————————————————————————————————
 
 #endif

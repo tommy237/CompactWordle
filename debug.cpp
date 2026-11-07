@@ -8,11 +8,7 @@ bool DEBUG_OFF() { return debugMode==Debug::OFF; }
 void DEBUG_PageNum() {
   if (DEBUG_ON()) {
     Serial.print("PageNum: ");
-<<<<<<< HEAD
     Serial.println(static_cast<int>(page));
-=======
-    Serial.println(static_cast<int>(pageNum));
->>>>>>> a40aaa0efd75482f02dc602d369ae940ad17631c
   }
 }
 
@@ -26,11 +22,7 @@ void DEBUG_ButtonPress() {
 void DEBUG_Indicators() {
   if (DEBUG_ON()) {
     Serial.print(" / Correctness : ");
-<<<<<<< HEAD
     for (size_t c=0;c<GetWordLength();c++) {
-=======
-    for (size_t c=0;c<5;c++) {
->>>>>>> a40aaa0efd75482f02dc602d369ae940ad17631c
       Serial.print(" ");
       LetterState current=indicator[c];
       switch (current) {
@@ -69,7 +61,6 @@ void DEBUG_Direction() {
 }
 
 
-<<<<<<< HEAD
 void DEBUG_ValidWord() {
   if (DEBUG_ON()) {
     Serial.print("Is a valid word? ");
@@ -86,8 +77,6 @@ void DEBUG_DisplayWord(char* word) {
 }
 
 
-=======
->>>>>>> a40aaa0efd75482f02dc602d369ae940ad17631c
 void DEBUG_Gamemode() {
   if (DEBUG_ON()) {
     Serial.print("Gamemode: ");
@@ -113,7 +102,6 @@ void DEBUG_Difficulty() {
 
 void DEBUG_Time() {
   if (DEBUG_ON()) {
-<<<<<<< HEAD
     const int m=GetMinutes();
     const int s=GetSeconds();
     Serial.print("TIME: ");
@@ -122,14 +110,6 @@ void DEBUG_Time() {
       Serial.print("m ");
     }
     Serial.print(s);
-=======
-    Serial.print("TIME: ");
-    if (minutes>0) {
-      Serial.print(minutes);
-      Serial.print("m ");
-    }
-    Serial.print(seconds);
->>>>>>> a40aaa0efd75482f02dc602d369ae940ad17631c
     Serial.println("s");
   }
 }
