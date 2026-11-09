@@ -64,6 +64,19 @@ enum class Difficulty {
   NORMAL,MODERATE,EXPERT,HARDCORE,ENDLESS,
   numDiffs, // total # flag
 };
+
+// ————————————————————————————————————————
+
+
+
+// ————————————————————————————————————————
+struct Record {
+  const uint32_t id;
+  const Gamemode gamemode;
+  const Difficulty diff;
+  const bool status;
+  const char last_word[10];
+};
 // ————————————————————————————————————————
 
 
@@ -108,9 +121,6 @@ extern const char* const wordGuesses[]; // record of letter arrangement guesses.
 // ——————————————————— macros —————————————
 #define MIN_WORD_LENGTH 5
 #define MAX_WORD_LENGTH 8
-
-#define MIN_ALPHABET 0x41  // A = 0x41 (65)
-#define MAX_ALPHABET 0x5A  // Z = 0x5A (90)
 // ————————————————————————————————————————
 
 
@@ -124,6 +134,7 @@ size_t GetWrongGuesses();
 size_t GetCorrectGuesses();
 size_t GetWordLength();
 void* GetSecretWord();
+vector<Record> GetLocalRecords();
 
 void OnWait();
 

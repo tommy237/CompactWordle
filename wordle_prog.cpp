@@ -2,12 +2,6 @@
 
 
 
-const char* const wordGuesses[] PROGMEM={}; // current words already guessed.
-const char ALPHABET[27]="ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-const size_t ALPHASIZE=sizeof(ALPHABET);
-
-
-
 // ——————————————————— program flags ——————
 Page page=Page::TITLE;               // current page
 GameState game_status=GameState::NONE;       // current result
@@ -18,13 +12,12 @@ Difficulty difficulty=Difficulty::NORMAL;
 
 
 // ——————————————————— number positioning —
-int charPos=0;             // pos of current letter of guessing word (and main cursor of selection)
-int letterPos=0;           // pos of alphabet selection
+int8_t charPos=0;             // pos of current letter of guessing word (and main cursor of selection)
+int8_t letterPos=0;           // pos of alphabet selection
 unsigned long lockMs=0;
-int lastDelay=0;
+unsigned int lastDelay=0;
 bool guess_valid=false;
 
-// ——————— REGULAR ———————————————————————————
 uint8_t word_len=5;         // current secret word length
 struct SecretWord {
   char key[10];
@@ -33,13 +26,22 @@ static SecretWord sec;
 char arrangement[10]={};      // current letter arrangement
 LetterState indicator[10]={}; // current letter indicators
 LetterState organizer[26][8]={};
+// ————————————————————————————————————————
+
+
+
+// ——————————————————— data storage ———————
+const char* const wordGuesses[] PROGMEM={}; // current words already guessed.
+const char ALPHABET_NUMBER[37]="ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+const uint8_t ALPHASIZE=sizeof(ALPHABET_NUMBER)-10;
+vector<Record> local_records;
+
 size_t guesses=0;
 size_t max_guesses=0;
 size_t wrong_guesses=0; // wrong guesses;
 size_t crrt_guesses=0; // correct guesses;
 size_t crrt_needed=0;
 size_t num_words=word_packs[0].total;
-
 // ————————————————————————————————————————
 
 
@@ -68,6 +70,8 @@ bool CheckPage(Page pg) { return page==pg; }
 bool CheckMode(Gamemode select) { return gameMode==select; }
 bool CheckDiff(Difficulty diff) { return difficulty==diff; }
 bool GetLastWordValid() { return guess_valid; }
+
+vector<Record> GetLocalRecords() { return local_records; }
 
 GameState GetStatus() { return game_status; }
 Page GetPageNum() { return page; }
@@ -189,6 +193,24 @@ void OnWait() {
 
 
 // |————————————————————————————————————————————| //
+// |————| DATA SAVING |—————————————————————————| //
+void AddGameResults() {
+  const bool won_or_loss=CheckStatus(GameState::WON)
+                       ||CheckDiff(Difficulty::ENDLESS);
+  local_records.push_back({
+    .id=local_records.size(),
+    .gamemode=gameMode,
+    .diff=difficulty,
+    .status=won_or_loss,
+    .last_word=sec.key
+  });
+}
+// |————| DATA SAVING |—————————————————————————| //
+// |————————————————————————————————————————————| //
+
+
+
+// |————————————————————————————————————————————| //
 // |————| BUTTON SEEKING |——————————————————————| //
 void SeekLetter() {
   if (!NoResp()) {
@@ -202,7 +224,7 @@ void SeekLetter() {
       const bool below=(i<0),
                  above=(i>=(ALPHASIZE-1));
       letterPos=below?(ALPHASIZE-2):above?0:i;
-      arrangement[charPos]=ALPHABET[letterPos];
+      arrangement[charPos]=ALPHABET_NUMBER[letterPos];
     }
     
     // USER presses LEFT or RIGHT.
@@ -240,6 +262,7 @@ void GameWin() {
     
   }
   AuthorPrompt(7);
+  AddGameResults();
   ToPage(Page::RESULTS);
   
 }
@@ -247,6 +270,7 @@ void GameWin() {
 void GameLose() {
   game_status=GameState::LOST;
   AuthorPrompt(7);
+  AddGameResults();
   ToPage(Page::RESULTS);
 }
 
