@@ -1,6 +1,8 @@
 // remember to download U8g2 from the Arduino Library Manager first!
+// ——————————————————— headers ———————————— //
 #include <Arduino.h>
 #include "wordle_prog.h"
+// ——————————————————— headers ———————————— //
 
 void setup() {
   Serial.begin(9600);
@@ -15,7 +17,7 @@ void loop() {
   do {
     Navigate_LCD();
   } while (screen.nextPage());
-  currentAction=GetButtonPress();
+  OnResponse();
   AutomaticResponse();
 }
 

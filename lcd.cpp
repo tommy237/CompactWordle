@@ -1,16 +1,8 @@
 #include "lcd.h"
 
-struct SecretWord {
-  char key[10];
-};
+struct SecretWord {char key[10];};
 
-U8G2_ST7920_128X64_1_SW_SPI screen(
-  U8G2_R0,
-  E_PIN,
-  RW_PIN,
-  RS_PIN
-  // RST_PIN
-);
+U8G2_ST7920_128X64_1_SW_SPI screen(U8G2_R0,E_PIN,RW_PIN,RS_PIN);
 bool displayFlag=false;
 const char* MENU_BUTTONS[]={"PLAY","GUIDE","STATS","RANKS","CONFIG"};
 
@@ -116,8 +108,8 @@ void NavigateSelect(size_t maximum,const char* selects[]) {
   const uint8_t bH=8;
   for (size_t i=0;i<maximum;i++) {
     const char* c=selects[i];
-    const bool match=(i==charPos); // if index matches current option
-    const int diff=(i-charPos);
+    const bool match=(i==GetHorizontalPos()); // if index matches current option
+    const int diff=(i-GetHorizontalPos());
     int pos=(7*diff);
     if (abs(diff)>2) continue; // omit further options until 2 positions closer to index
     pos=(!match)?((diff>0)?(pos+1):(pos-2)):pos; // spacing from matching index
@@ -156,7 +148,7 @@ void NavigateCharacter() {
   uint8_t curX=cX;
   for (uint8_t i=0;i<wordLen;i++) {
     char c=arrangement[i];
-    bool match=(i==charPos),
+    bool match=(i==GetHorizontalPos()),
          noExist=(c=='\0');
     c=(noExist?' ':c);
     if (match&&Flashing(1)) {
@@ -176,7 +168,7 @@ void NavigateCharacter() {
 void DisplayDifficulty() {
   const char* list[]={"WORDLE","SPEED","DEATHMATCH"};
   char sel[LCD_WIDTH/4]; // selected string from list[]
-  const uint8_t i=static_cast<uint8_t>(gameMode); // index of current gamemode
+  const uint8_t i=static_cast<uint8_t>(GetMode()); // index of current gamemode
   snprintf(sel,sizeof(sel),"< %s >",list[i]);
   TopCenterText(sel);
 }
@@ -327,7 +319,7 @@ void LCD_GuidePage() {
   const uint8_t nPages=NUM_GUIDE_PAGES;
   screen.drawXBMP(2,2,(LCD_WIDTH-2),9,guideImg);
   char ft[16]; // footer
-  snprintf(ft,sizeof(ft),"PAGE %d OF %d",charPos+1,nPages);
+  snprintf(ft,sizeof(ft),"PAGE %d OF %d",GetHorizontalPos()+1,nPages);
   PositionSub(ft,TextPos::TOP_RIGHT);
   if (Flashing(1.2)) { ShowNav(seekNav); }
 }
@@ -361,7 +353,7 @@ void Navigate_LCD() {
   } else {
     // displays the contents of the page 
     // to the LCD by the page number.
-    switch(page) {
+    switch(GetPageNum()) {
       // Main title //
       case Page::TITLE: Animate_Intro(); break;
 

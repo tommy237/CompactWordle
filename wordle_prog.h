@@ -3,7 +3,7 @@
 #define __WORDLE_H__
 #define __ASSERT_USE_STDERR
 
-// ——————————————————— headers ————————————
+// ——————————————————— headers ———————————— //
 #include <Arduino.h>
 #include <assert.h>
 #include "buttons.h"
@@ -11,11 +11,11 @@
 #include "word_bank.h"
 #include "game_timer.h"
 #include "debug.h"
-// ————————————————————————————————————————
+// ——————————————————— headers ———————————— //
 
 
 
-// ——————————————————— enum flags —————————
+// ——————————————————— enum flags ————————— //
 enum class GameState { NONE,PLAYING,WON,LOST };
 enum class LetterState {NONE,
   INCORRECT, // gray   []
@@ -59,54 +59,21 @@ enum class Page {
 enum class Gamemode { 
   REGULAR,SPEED,DEATHMATCH, 
   numGamemodes, // total # flag
+  NONE, // null flag
 };
 enum class Difficulty { 
   NORMAL,MODERATE,EXPERT,HARDCORE,ENDLESS,
   numDiffs, // total # flag
+  NONE, // null flag
 };
-
-// ————————————————————————————————————————
-
-
-
-// ————————————————————————————————————————
-struct Record {
-  const uint32_t id;
-  const Gamemode gamemode;
-  const Difficulty diff;
-  const bool status;
-  const char last_word[10];
-};
-// ————————————————————————————————————————
+// ——————————————————— enum flags ————————— //
 
 
 
-// ——————————————————— program flags ——————
-extern GameState game_status;
-extern Page page;
-extern Gamemode gameMode;
-extern Difficulty difficulty;
-
-GameState GetStatus();
-Page GetPageNum();
-Gamemode GetMode();
-Difficulty GetDiff();
-
-bool CheckStatus(GameState status);
-bool CheckPage(Page pg);
-bool CheckMode(Gamemode select);
-bool CheckDiff(Difficulty diff);
-// ————————————————————————————————————————
-
-
-
-// ——————————————————— number positioning —
+// ——————————————————— number positioning — //
 extern size_t guesses;  // current # of guesses in game.
-extern int scrollSpeed; // speed of char scrolling when holding.
-extern int charPos;     // pos of current letter of guessing word.
-extern int letterPos;   // pos of alphabet selection.
-extern size_t wordLength;
-// ————————————————————————————————————————
+// extern int scrollSpeed; // speed of char scrolling when holding.
+// ——————————————————— number positioning — //
 
 
 
@@ -118,30 +85,41 @@ extern const char* const wordGuesses[]; // record of letter arrangement guesses.
 
 
 
-// ——————————————————— macros —————————————
+// ——————————————————— macros ————————————— //
 #define MIN_WORD_LENGTH 5
 #define MAX_WORD_LENGTH 8
-// ————————————————————————————————————————
+// ——————————————————— macros ————————————— //
 
 
 
-// ——————————————————— functions ——————————
-void update_Screen();
-void update_Status();
+// —————————————— public functions ————————— //
+GameState GetStatus();
+Page GetPageNum();
+Gamemode GetMode();
+Difficulty GetDiff();
+
+int8_t GetHorizontalPos();
+int8_t GetVerticalPos();
 
 size_t GetMaxGuesses();
 size_t GetWrongGuesses();
 size_t GetCorrectGuesses();
-size_t GetWordLength();
+uint8_t GetWordLength();
 void* GetSecretWord();
-vector<Record> GetLocalRecords();
 
+bool CheckStatus(GameState status);
+bool CheckPage(Page pg);
+bool CheckMode(Gamemode select);
+bool CheckDiff(Difficulty diff);
+
+void update_Screen();
+void update_Status();
 void OnWait();
 
 bool GetLastWordValid();
 bool WordValid(const char guess[],const size_t wordLength);
 bool CorrectWord(const char guess[],const char secret[]);
 void RandomWord(char *buffer,size_t bufferSize,int wordSize);
-// ————————————————————————————————————————
+// —————————————— public functions ————————— //
 
 #endif

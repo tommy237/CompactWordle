@@ -1,5 +1,10 @@
+// ——————————————————— headers ———————————— //
 #include "buttons.h"
+// ——————————————————— headers ———————————— //
 
+
+
+// —————— data storage ————————————————————— //
 Button buttons[]={
   {23,ButtonAction::UP,   ButtonToggle::HOLD, 0,HIGH,false},
   {24,ButtonAction::DWN,  ButtonToggle::HOLD, 0,HIGH,false},
@@ -7,16 +12,18 @@ Button buttons[]={
   {25,ButtonAction::RGT,  ButtonToggle::HOLD, 0,HIGH,false},
   {27,ButtonAction::CNFRM,ButtonToggle::CLICK,0,HIGH,false}
 };
-int scrollSpeed=MIN_DIAL_SPEED;
+uint8_t scroll_speed=MIN_DIAL_SPEED; // speed of char scrolling when holding.
 byte numButtons=sizeof(buttons)/sizeof(buttons[0]);
 ButtonAction currentAction;
 bool buttonLock=false;
+// —————— data storage ————————————————————— //
 
-// ——————————————————— functions —
-// returns if user pressed confirm button;
+
+
+// |————————————————————————————————————————————| //
+// |————| RETURN FUNCTIONS |————————————————————| //
+
 bool OnLocked() { return buttonLock; }
-void LockButtons(bool toggle) { buttonLock=toggle; }
-
 bool Cnfrm() { return currentAction==ButtonAction::CNFRM; }
 bool Up() { return currentAction==ButtonAction::UP; }
 bool Dwn() { return currentAction==ButtonAction::DWN; }
@@ -24,10 +31,22 @@ bool Lft() { return currentAction==ButtonAction::LFT; }
 bool Rgt() { return currentAction==ButtonAction::RGT; }
 bool NoResp() { return currentAction==ButtonAction::NONE; }
 
-int UpDwn() { return Dwn()?-1:Up()?1:0; } // up 1 or down 1
-int LftRgt() { return Lft()?-1:Rgt()?1:0; } // left 1 or right 1
+uint8_t GetScrollSpeed() { return scroll_speed; }
+int8_t UpDwn() { return Dwn()?-1:Up()?1:0; } // up 1 or down 1
+int8_t LftRgt() { return Lft()?-1:Rgt()?1:0; } // left 1 or right 1
 
-void Scrolling(int *cursorPos,int maximum,int dir) {
+
+// |————| RETURN FUNCTIONS |————————————————————| //
+// |————————————————————————————————————————————| //
+
+
+
+// |—————————————————————————————————————————————| //
+// |————| DISPLAY FUNCTIONS |————————————————————| //
+
+void LockButtons(bool toggle) { buttonLock=toggle; }
+
+void Scrolling(int8_t *cursorPos,int maximum,int dir) {
   assert(abs(dir)<=1);
   assert(maximum>0);
   int nextPos=(*cursorPos)+dir;
@@ -75,7 +94,7 @@ ButtonAction GetButtonPress() {
             btn->C++;
             float t=constrain(btn->C,0,DIAL_STEPPING);
             float f_x=pow(t/DIAL_STEPPING,3);
-            scrollSpeed=map(f_x*1E2,0,1E2,
+            scroll_speed=map(f_x*1E2,0,1E2,
               MIN_DIAL_SPEED,
               MAX_DIAL_SPEED);
           }
@@ -84,7 +103,7 @@ ButtonAction GetButtonPress() {
     } else if (released) {
       if (btn->REPEATING) {
         btn->C=0;
-        scrollSpeed=MIN_DIAL_SPEED;
+        scroll_speed=MIN_DIAL_SPEED;
       }
       btn->REPEATING=false;
       btn->LAST=HIGH;
@@ -93,4 +112,9 @@ ButtonAction GetButtonPress() {
   return triggered;
 }
 
-// ———————————————————————————————
+void OnResponse() {
+  currentAction=GetButtonPress();
+}
+
+// |————| DISPLAY FUNCTIONS |————————————————————| //
+// |—————————————————————————————————————————————| //

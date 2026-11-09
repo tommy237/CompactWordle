@@ -8,14 +8,14 @@ bool DEBUG_OFF() { return debugMode==Debug::OFF; }
 void DEBUG_PageNum() {
   if (DEBUG_ON()) {
     Serial.print("PageNum: ");
-    Serial.println(static_cast<int>(page));
+    Serial.println(static_cast<int>(GetPageNum()));
   }
 }
 
 void DEBUG_ButtonPress() {
   if (DEBUG_ON()) {
     Serial.print("ButtonPress: ");
-    Serial.println(static_cast<int>(currentAction));
+    Serial.println(static_cast<int>(GetButtonPress()));
   }
 }
 
@@ -38,8 +38,8 @@ void DEBUG_Indicators() {
 
 void DEBUG_CharSelect() {
   if (DEBUG_ON() && Cnfrm()) {  
-    Serial.print("LetterPos: "); Serial.print(letterPos);
-    Serial.print(" | CharPos: "); Serial.print(charPos);
+    Serial.print("LetterPos: "); Serial.print(GetVerticalPos());
+    Serial.print(" | CharPos: "); Serial.print(GetHorizontalPos());
     Serial.print(" | Arrangement: ");
     for (int c=0;c<5;c++) {
       char current=arrangement[c];
@@ -80,7 +80,7 @@ void DEBUG_DisplayWord(char* word) {
 void DEBUG_Gamemode() {
   if (DEBUG_ON()) {
     Serial.print("Gamemode: ");
-    switch(static_cast<Gamemode>(charPos)) {
+    switch(static_cast<Gamemode>(GetHorizontalPos())) {
       case Gamemode::REGULAR: Serial.println("[a]    REGULAR"); break;
       case Gamemode::SPEED: Serial.println("[b]      SPEED"); break;
       case Gamemode::DEATHMATCH: Serial.println("[c] DEATHMATCH"); break;
@@ -91,7 +91,7 @@ void DEBUG_Gamemode() {
 void DEBUG_Difficulty() {
   if (DEBUG_ON()) {
     Serial.print("Difficulty: ");
-    switch(static_cast<Difficulty>(charPos)) {
+    switch(static_cast<Difficulty>(GetHorizontalPos())) {
       case Difficulty::NORMAL: Serial.println("*    (NORMAL)"); break;
       case Difficulty::MODERATE: Serial.println("**   (MODERATE)"); break;
       case Difficulty::EXPERT: Serial.println("***  (EXPERT)"); break;

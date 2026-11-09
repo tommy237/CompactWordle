@@ -1,16 +1,21 @@
 #ifndef __BUTTONS_H__
 #define __BUTTONS_H__
 
-// ——————————————————— headers ————————————
+// ——————————————————— headers ———————————— //
 #include <Arduino.h>
 #include <assert.h>
-// ————————————————————————————————————————
+// ——————————————————— headers ———————————— //
 
 
 
-// ——————————————————— button object & enum flags —
+// ——————————————————— enum flags ————————— //
 enum class ButtonAction { NONE,UP,DWN,LFT,RGT,CNFRM };
 enum class ButtonToggle { HOLD,CLICK };
+// ——————————————————— enum flags ————————— //
+
+
+
+// ——————————————————— structures ———— //
 struct Button {
   const byte PIN;
   const ButtonAction ACTION;
@@ -20,11 +25,11 @@ struct Button {
   bool REPEATING;
   int C;
 };
-// ————————————————————————————————————————————————
+// ——————————————————— structures ———— //
 
 
 
-// ——————————————————— settings ———————————
+// ——————————————————— macros ————————————— //
 #define MIN_DIAL_SPEED 1
 #define MAX_DIAL_SPEED 3
 #define DIAL_STEPPING 10
@@ -32,23 +37,19 @@ struct Button {
 #define DEBOUNCE_DELAY 25
 #define HOLD_DELAY 350
 #define HOLD_REPEAT_RATE 100
-// ————————————————————————————————————————
+// ——————————————————— macros ————————————— //
 
 
 
-// ——————————————————— number positioning —
+// ——————————————————— number positioning — //
 extern Button buttons[];
-extern int scrollSpeed;
 extern byte numButtons;
-extern ButtonAction currentAction;
-// ————————————————————————————————————————
+// ——————————————————— number positioning — //
 
 
 
-// ——————————————————— functions ——————————
+// —————————————— public functions ————————— //
 bool OnLocked();
-
-// bool flags
 bool Cnfrm();
 bool Up();
 bool Dwn();
@@ -56,17 +57,15 @@ bool Lft();
 bool Rgt();
 bool NoResp();
 
-// toggle flags
-int UpDwn();
-int LftRgt();
+uint8_t GetScrollSpeed();
+int8_t UpDwn();
+int8_t LftRgt();
 
-// buffer control
-void Scrolling(int *cursorPos,int maximum,int dir);
-
-// utility functions
+void LockButtons(bool toggle);
+void Scrolling(int8_t *cursorPos,int maximum,int dir);
 void Init_Buttons();
 ButtonAction GetButtonPress();
-void LockButtons(bool toggle);
-// ————————————————————————————————————————
+void OnResponse();
+// —————————————— public functions ————————— //
 
 #endif
