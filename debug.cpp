@@ -1,9 +1,9 @@
 #include "debug.h"
 
-Debug debugMode=Debug::ON;
+Debug debugMode = Debug::ON;
 
-bool DEBUG_ON() { return debugMode==Debug::ON; }
-bool DEBUG_OFF() { return debugMode==Debug::OFF; }
+bool DEBUG_ON() { return debugMode == Debug::ON; }
+bool DEBUG_OFF() { return debugMode == Debug::OFF; }
 
 void DEBUG_PageNum() {
   if (DEBUG_ON()) {
@@ -15,20 +15,20 @@ void DEBUG_PageNum() {
 void DEBUG_ButtonPress() {
   if (DEBUG_ON()) {
     Serial.print("ButtonPress: ");
-    Serial.println(static_cast<int>(GetButtonPress()));
+    Serial.println(static_cast<int>(GetAction()));
   }
 }
 
 void DEBUG_Indicators() {
   if (DEBUG_ON()) {
     Serial.print(" / Correctness : ");
-    for (size_t c=0;c<GetWordLength();c++) {
+    for (uint8_t c = 0; c < GetWordLength(); c++) {
       Serial.print(" ");
-      LetterState current=indicator[c];
+      LetterState current=GetLetterStatus(c);
       switch (current) {
         case LetterState::INCORRECT: Serial.print("0"); break;
-        case LetterState::PARTIAL: Serial.print("1"); break;
-        case LetterState::MATCH: Serial.print("2"); break;
+        case   LetterState::PARTIAL: Serial.print("1"); break;
+        case     LetterState::MATCH: Serial.print("2"); break;
         default: Serial.print("0"); break;
       }
     }
@@ -37,11 +37,13 @@ void DEBUG_Indicators() {
 }
 
 void DEBUG_CharSelect() {
-  if (DEBUG_ON() && Cnfrm()) {  
-    Serial.print("LetterPos: "); Serial.print(GetVerticalPos());
-    Serial.print(" | CharPos: "); Serial.print(GetHorizontalPos());
+  if (DEBUG_ON() && !NoResp()) {  
+    Serial.print("LetterPos: ");
+    Serial.print(GetVerticalPos());
+    Serial.print(" | CharPos: ");
+    Serial.print(GetHorizontalPos());
     Serial.print(" | Arrangement: ");
-    for (int c=0;c<5;c++) {
+    for (uint8_t c = 0; c < 5; c++) {
       char current=arrangement[c];
       switch (current) {
         case '\0': Serial.print("_"); break;
@@ -55,11 +57,12 @@ void DEBUG_CharSelect() {
 
 void DEBUG_Direction() {
   if (DEBUG_ON()) {
-    Serial.print("Vertical direction: "); Serial.print(UpDwn());
-    Serial.print(" | Horizontal direction: "); Serial.println(LftRgt());
+    Serial.print("Vertical direction: ");
+    Serial.print(UpDwn());
+    Serial.print(" | Horizontal direction: ");
+    Serial.println(LftRgt());
   }
 }
-
 
 void DEBUG_ValidWord() {
   if (DEBUG_ON()) {
@@ -68,14 +71,12 @@ void DEBUG_ValidWord() {
   }
 }
 
-
 void DEBUG_DisplayWord(char* word) {
   if (DEBUG_ON()) {
     Serial.print("The word is.. ");
     Serial.println(word);
   }
 }
-
 
 void DEBUG_Gamemode() {
   if (DEBUG_ON()) {
@@ -102,14 +103,29 @@ void DEBUG_Difficulty() {
 
 void DEBUG_Time() {
   if (DEBUG_ON()) {
-    const int m=GetMinutes();
-    const int s=GetSeconds();
+    const int m = GetMinutes(),
+              s = GetSeconds();
     Serial.print("TIME: ");
-    if (m>0) {
+    if (m > 0) {
       Serial.print(m);
       Serial.print("m ");
     }
     Serial.print(s);
     Serial.println("s");
+  }
+}
+
+void __assert(const char *__func, const char *__file, int __lineno, const char *__sexp)
+{
+  Serial.println("\n————————————————— ASSERTION FAILED —————————————————");
+  Serial.print("File: "); Serial.println(__file);
+  Serial.print("Line: "); Serial.println(__lineno);
+  Serial.print("Function: "); Serial.println(__func);
+  Serial.print("Expression: "); Serial.println(__sexp);
+  Serial.flush();
+  
+  // Halts the microcontroller. Use an infinite loop.
+  while (true) {
+    // Optional: blink an LED here to give a physical warning light
   }
 }

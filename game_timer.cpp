@@ -1,50 +1,51 @@
 #include "game_timer.h"
 
 //————/ GLOBAL VARIABLES /————————————//
-unsigned long timeMs=0;
-int minutes=0;
-int seconds=0;
-TimeState timeStatus=TimeState::STOPPED;
+unsigned long last_time = 0;
+int minutes = 0;
+int seconds = 0;
+TimeState time_state = TimeState::STOPPED;
 //————/ GLOBAL VARIABLES /————————————//
 
 //————/ RETURN FUNCTIONS /————————————//
 int GetSeconds() { return seconds; }
 int GetMinutes() { return minutes; }
-bool NoTime() { return (minutes<=0)&&(seconds<=0); }
-bool TimeRunning() { return timeStatus==TimeState::PLAYING; }
-bool TimeStopped() { return timeStatus==TimeState::STOPPED; }
-bool TimePaused() { return timeStatus==TimeState::PAUSED; }
+bool NoTime() { return (minutes <= 0) && (seconds <= 0); }
+bool TimeRunning() { return time_state == TimeState::PLAYING; }
+bool TimeStopped() { return time_state == TimeState::STOPPED; }
+bool TimePaused() { return time_state == TimeState::PAUSED; }
 //————/ RETURN FUNCTIONS /————————————//
 
 //————/ FUNCTIONS /————————————//
 void PlayTimer() {
   if (TimeRunning()) return;
-  timeStatus=TimeState::PLAYING;
+  time_state = TimeState::PLAYING;
 }
 
 void PauseTimer() {
   if (TimePaused()) return;
-  timeStatus=TimeState::PAUSED;
+  time_state = TimeState::PAUSED;
 }
 
 void StopTimer() {
   if (TimeStopped()) return;
-  timeStatus=TimeState::STOPPED;
-  minutes=0; seconds=0;
+  time_state = TimeState::STOPPED;
+  minutes = 0;
+  seconds = 0;
 }
 
-void UpdateTime(bool countUp) {
+void UpdateTime(bool count_up) {
   if (TimeRunning()) {
-    const unsigned long ms=millis();
-    const unsigned long diffMs=(ms-timeMs);
-    if (diffMs>=1E3) {
-      timeMs=ms;
-      if (!countUp) {
-        bool outOfSeconds=(seconds<=0);
-        bool hasMinutes=(minutes>0);
-        bool minuteReset=(hasMinutes && outOfSeconds);
-        minutes=(minuteReset)?minutes-1:minutes;
-        seconds=(minuteReset)?59:seconds-1;
+    const unsigned long ms = millis();
+    const unsigned long diff_ms = (ms - last_time);
+    if (diff_ms >= TO_SECONDS(1)) {
+      last_time = ms;
+      if (!count_up) {
+        const bool out_of_seconds = (seconds <= 0),
+                   has_minutes    = (minutes > 0),
+                   minute_reset   = (has_minutes && out_of_seconds);
+        minutes = minute_reset ? minutes - 1 : minutes;
+        seconds = minute_reset ? 59          : seconds - 1;
         // DEBUG_Time();
         if (NoTime()) { StopTimer(); }
       } else {
@@ -54,14 +55,14 @@ void UpdateTime(bool countUp) {
   }
 }
 
-void UpdateTimer(int mins,int secs) {
-  int mTemp=minutes+mins;
-  int sTemp=seconds+secs;
-  while (sTemp>=60) {
+void UpdateTimer(int mins, int secs) {
+  int mTemp = minutes + mins;
+  int sTemp = seconds + secs;
+  while (sTemp >= 60) {
     mTemp++;
-    sTemp=sTemp%60;
+    sTemp %= 60;
   }
-  minutes=mTemp;
-  seconds=sTemp;
+  minutes = mTemp;
+  seconds = sTemp;
 }
 //————/ FUNCTIONS /————————————//

@@ -4,7 +4,8 @@
 #include "wordle_prog.h"
 // ——————————————————— headers ———————————— //
 
-void setup() {
+void setup()
+{
   Serial.begin(9600);
   Init_LCD();
   Init_Buttons();
@@ -12,19 +13,21 @@ void setup() {
   Animate_Intro();
 }
 
-void loop() {
+void loop()
+{
   screen.firstPage();
   do {
     Navigate_LCD();
   } while (screen.nextPage());
-  OnResponse();
   AutomaticResponse();
 }
 
-void AutomaticResponse() {
+void AutomaticResponse()
+{
+  OnResponse();
   if (!OnPopup()) {
     UpdateTime(false);
-    if (!NoResp()) { update_Screen();}
+    if (!NoResp()) { update_Screen(); }
     update_Status();
   }
   OnWait();
