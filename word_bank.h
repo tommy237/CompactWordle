@@ -16,8 +16,8 @@
 // —————— structures ————————————————— //
 struct WordPack {
   const char* bank;
-  const size_t total;
-  const uint8_t leng;
+  uint16_t total;
+  uint8_t leng;
 };
 // —————— structures ————————————————— //
 
@@ -72,7 +72,7 @@ const char words7[][8] PROGMEM = {
 
 
 // —————— word packs —————————————————————— //
-const WordPack word_packs[3] = {
+const WordPack word_packs[3] PROGMEM = {
   {.bank = (const char*)words5, .total = LENG(words5), .leng = 5}, 
   {.bank = (const char*)words6, .total = LENG(words6), .leng = 6}, 
   {.bank = (const char*)words7, .total = LENG(words7), .leng = 7}, 

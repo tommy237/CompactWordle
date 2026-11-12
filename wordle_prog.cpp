@@ -99,7 +99,9 @@ void* GetSecretWord() { return (void*)&sec; }
 
 void ResetPos() 
 {
-  letterPos = CheckStatus(GameState::PLAYING) ? sizeof(ALPHABET_NUMBER) : 0; // last index refers to a null character.
+  letterPos = CheckStatus(GameState::PLAYING) 
+              ? sizeof(ALPHABET_NUMBER) // last index refers to a null character.
+              : 0; 
   charPos = 0;
 }
 
@@ -126,20 +128,30 @@ void ClrLetters()
 // |————————————————————————————————————————————| //
 // |————| PROGRAM FUNCTIONS |———————————————————| //
 
+bool PackRetrieved(WordPack& pack, uint8_t i)
+{
+  if (i >= LENG(word_packs)) return false;
+  memcpy_P(&pack, &word_packs[i], sizeof(WordPack));
+  return true;
+}
+
 // Chooses a random word from the word bank depending on the # of letters.
 void RandomWord() 
 {
   char *secret_word = sec.key;
-  const size_t b_size = sizeof(sec.key), 
-               ofs = (b_size - 1);
+  const uint16_t b_size = sizeof(sec.key);
   // Given word_len is a non-zero number, the index to
   // word pack for said word length starts at zero.
-  const WordPack& pack = word_packs[word_len - MIN_WORD_LENGTH];
-  num_words = pack.total;
-  size_t rand_i = random(num_words);
-  strncpy_P(secret_word, pack.bank[rand_i], ofs);
-  secret_word[ofs] = '\0';
-  DEBUG_DisplayWord(secret_word); // comment out if not needed
+  WordPack pack;
+  const uint8_t pack_i = (word_len - MIN_WORD_LENGTH);
+  if (PackRetrieved(pack, pack_i)) {
+    num_words = pack.total;
+    const size_t rand_i = random(num_words);
+    const uint8_t stride = (pack.leng + 1);
+    const char* rand_word = pack.bank + (rand_i * stride);
+    strlcpy_P(secret_word, rand_word, b_size);
+    DEBUG_DisplayWord(secret_word); // comment out if not needed
+  }
 }
 
 // Checks to see if the word exists from the word bank.
@@ -148,10 +160,14 @@ bool WordValid(const char* guess)
   // From RandomWord() comment:
   // Given word_len is a non-zero number, the index to
   // word pack for said word length starts at zero.
-  const WordPack& pack = word_packs[word_len - MIN_WORD_LENGTH];
-  for (size_t i = 0; i < pack.total; i++) {
-    const char* cur = (pack.bank + (i * (pack.leng + 1)));
-    if (strcmp_P(guess, cur) == 0) return true;
+  WordPack pack;
+  const uint8_t pack_i = (word_len - MIN_WORD_LENGTH);
+  if (PackRetrieved(pack, pack_i)) {
+    for (uint16_t i = 0; i < pack.total; i++) {
+      const uint8_t stride = (pack.leng + 1);
+      const char* cur = (pack.bank + (i * stride));
+      if (strcmp_P(guess, cur) == 0) return true;
+    }
   }
   return false;
 }
@@ -268,7 +284,6 @@ void SeekLetter()
 
 void ToPage(Page pg) 
 {
-  Serial.println(static_cast<int>(pg));
   page_i = pg;
   ResetPos();
 }
