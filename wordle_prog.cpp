@@ -105,13 +105,6 @@ void ResetPos()
   charPos = 0;
 }
 
-void ClrLocalStats() 
-{
-  wrong_guesses = 0;
-  crrt_guesses = 0;
-  guesses = 0;
-}
-
 void ClrLetters() 
 {
   for (int c = 0; c < (word_len + 1); c++) {
@@ -313,11 +306,13 @@ void GameLose()
 bool Confirmation()
 {
   const bool endless = CheckDiff(Difficulty::ENDLESS);
+  const uint32_t crrt_guesses = GetCorrectGuesses();
 
   // ———————— D E A T H M A T C H ———————— //
   if (CheckMode(Gamemode::DEATHMATCH)) {
-    crrt_guesses++;
-    if (crrt_guesses <= crrt_needed) return false;
+    // crrt_guesses++;
+    AddGuess(true);
+    if (crrt_guesses <= GetGuessGoal()) return false;
     return true;
   }
   // ———————— D E A T H M A T C H ———————— //
@@ -340,9 +335,9 @@ bool Confirmation()
   else {
     if (endless) {
       RandomWord();
-      max_guesses = (crrt_guesses > 10) ? 3 :
+      SetGuessLimit((crrt_guesses > 10) ? 3 :
                     (crrt_guesses > 5 ) ? 4 :
-                    (crrt_guesses > 3 ) ? 5 : 6;
+                    (crrt_guesses > 3 ) ? 5 : 6);
     }
     return !endless; // must return false; endless mode
   }
@@ -356,16 +351,16 @@ void PlayGame()
   ToPage(Page::GAME);
   if (CheckStatus(GameState::NONE)) {
     game_status = GameState::PLAYING;
-    ClrLocalStats();
+    ClearGuesses();
     const uint8_t diff_i = static_cast<uint8_t>(difficulty);
 
     // ———————— D E A T H M A T C H ———————— //
     if (CheckMode(Gamemode::DEATHMATCH)) {
       const uint8_t guess_stash[] = {20, 18, 14, 10}; // guesses stash by difficulty
       const uint8_t goal_stash[] = {5, 6, 7, 8};    // correct guesses goal by difficulty
-      max_guesses = guess_stash[diff_i];
-      crrt_needed = goal_stash[diff_i];
-      crrt_guesses = 0;
+      SetGuessLimit(guess_stash[diff_i]);
+      SetGuessGoal(goal_stash[diff_i]);
+
       const uint8_t m_stash[] = {10, 7, 6, 5};  // minutes by difficulty
       const uint8_t s_stash[] = {0, 30, 15, 0}; // seconds by difficulty
       UpdateTimer(m_stash[diff_i], s_stash[diff_i]);
@@ -381,7 +376,7 @@ void PlayGame()
     
     // ———————— W O R D L E ———————— //
     else {
-      max_guesses = 6;
+      SetGuessLimit(6);
       const uint8_t len_stash[] = {5, 6, 6, 7, 5}; // length by difficulty
       word_len = len_stash[diff_i];
     }
@@ -427,13 +422,15 @@ void update_GameHud()
   DEBUG_Indicators(); // comment out if not needed
   guesses++;
   SetLock(1);
-  if (correct) {
-    crrt_guesses++;
-    if (Confirmation()) { GameWin(); }
-    wrong_guesses = 0;
-  } else {
-    wrong_guesses++;
-  }
+  AddGuessClearWrong(correct);
+  if (correct && Confirmation()) GameWin();
+  // if (correct) {
+  //   // crrt_guesses++;
+  //   if (Confirmation()) { GameWin(); }
+  //   // wrong_guesses = 0;
+  // } else {
+  //   // wrong_guesses++;
+  // }
   ClrLetters();
   ResetPos();
 }
@@ -523,6 +520,12 @@ void goto_StatsPage() { ToPage(Page::STATS); }
 
 void update_Stats()
 {
+  uint32_t amnt_rounds = GetTotalRounds();
+  if (amnt_rounds > 0) {
+    uint8_t max_records = GetMaxLocalRecords();
+    Scrolling(&letterPos, constrain(amnt_rounds, 0, max_records), -UpDwn());
+  }
+  
   if (Cnfrm()) { ExitToMenu(2); }
 }
 
@@ -606,11 +609,12 @@ void update_MainMenu()
 
 void print_Results()
 {
-  ResetPos();
-  int8_t ud = -UpDwn(),
-         lr = LftRgt();
-  Scrolling(&letterPos, 5, ud);  // up/down    cursor
-  Scrolling(&charPos  , 5, lr); // left/right cursor
+  int8_t ud = -UpDwn();
+  int8_t stats_total = CheckMode(Gamemode::SPEED) ? 6 : 5
+  if (CheckDiff(Difficulty::ENDLESS)) {
+    stats_total += 1;
+  }
+  Scrolling(&letterPos, stats_total, ud);  // up/down cursor
   if (Cnfrm()) {
     goto_MainMenu();
   }

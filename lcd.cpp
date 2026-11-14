@@ -31,7 +31,12 @@ void ShowNav(const uint8_t* xbmp) { screen.drawXBMP(2, (disp_height - 7), (disp_
 bool Flashing(double i) { return (millis() % (long)(i * 1E3)) < (i * 0.5E3); }
 u8g2_uint_t MidPt(u8g2_uint_t pos1, u8g2_uint_t pos2) { return (pos1 - pos2) / 2; }
 
-void CenterText(int x, int y, const char* str)
+void BevelBox(uint8_t x, uint8_t y, uint8_t w, uint8_t h) {
+  screen.drawBox(x + 1, y, w - 2, h);
+  screen.drawBox(x, y + 1, w, h - 2);
+}
+
+void CenterText(uint8_t x, uint8_t y, const char* str)
 {
   const uint8_t string_width  = screen.getStrWidth(str), 
                 string_height = screen.getMaxCharHeight();
@@ -149,14 +154,18 @@ void NavigateSelect(size_t maximum, const char* selects[])
                           back,                  mid_height + (box_height / 2),   // bottom back
                           back + arrowThickness, mid_height       ); // pointy tip
       // box dimensions
-      screen.drawBox(MidPt(disp_width, box_width),
-                     MidPt(disp_height, box_height - 2),
-                     box_width,
-                     box_height - 2);
-      screen.drawBox(MidPt(disp_width, box_width - 2),
-                     MidPt(disp_height, box_height),
-                     box_width - 2,
-                     box_height);
+      BevelBox(MidPt(disp_width, box_width), 
+               MidPt(disp_height, box_height),
+               box_width, 
+               box_height);
+      // screen.drawBox(MidPt(disp_width, box_width),
+      //                MidPt(disp_height, box_height - 2),
+      //                box_width,
+      //                box_height - 2);
+      // screen.drawBox(MidPt(disp_width, box_width - 2),
+      //                MidPt(disp_height, box_height),
+      //                box_width - 2,
+      //                box_height);
       SetColorMode(LCDColor::BLACK);
     }
     CenterText(0, pos, c);
@@ -184,8 +193,9 @@ void NavigateCharacter()
          noExist = (c == '\0');
     c = (noExist ? ' ' : c);
     if (match && Flashing(1)) {
-      screen.drawBox(current_X + 1, center_Y, char_width - 2, char_height);
-      screen.drawBox(current_X, center_Y + 1, char_width, char_height - 2);
+      // screen.drawBox(current_X + 1, center_Y, char_width - 2, char_height);
+      // screen.drawBox(current_X, center_Y + 1, char_width, char_height - 2);
+      BevelBox(current_X, center_Y, char_width, char_height);
       SetColorMode(LCDColor::BLACK);
     }
     screen.drawGlyph(current_X, center_Y + 2, c);

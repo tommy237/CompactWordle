@@ -46,6 +46,16 @@ struct Record {
 
 
 // —————— public functions ————————————————— //
+uint32_t GetTotalGuesses();
+uint32_t GetGuessLimit();
+uint32_t GetLocalGuesses();
+uint32_t GetCorrectGuesses();
+uint32_t GetWrongGuesses();
+uint8_t GetMaxLocalRecords();
+void ClearGuesses();
+void SetGuessLimit(uint32_t limit);
+void SetGuessGoal(uint32_t goal);
+
 uint32_t GetTotalRounds();
 void AddGameResults();
 Record* GetLocalRecord(uint8_t index);
