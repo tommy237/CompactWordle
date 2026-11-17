@@ -8,6 +8,8 @@ struct SecretWord { char key[10]; };
 U8G2_ST7920_128X64_1_SW_SPI screen(U8G2_R0, E_PIN, RW_PIN, RS_PIN);
 const uint8_t disp_width  = LCD_WIDTH, 
               disp_height = LCD_HEIGHT;
+const uint8_t middle_X = (disp_width / 2),
+              middle_Y = (disp_height / 2);
 bool displayFlag = false;
 const char* MENU_BUTTONS[] = {"PLAY", "GUIDE", "STATS", "RANKS", "CONFIG"};
 // —————— global vars ————————————————————— //
@@ -19,7 +21,10 @@ const char* MENU_BUTTONS[] = {"PLAY", "GUIDE", "STATS", "RANKS", "CONFIG"};
 
 void Init_LCD()
 {
-  screen.begin();
+  if (!screen.begin();) {
+    Serial.println("LCD failed to initialize.");
+    while (1);
+  }
   screen.setFontRefHeightText();
   screen.setFontPosTop();
 }
@@ -138,8 +143,8 @@ void NavigateSelect(size_t maximum, const char* selects[])
   for (size_t i = 0; i < maximum; i++) {
     const char* c = selects[i];
     const bool match = (i == GetHorizontalPos()); // if index matches current option
-    const int diff = (i - GetHorizontalPos());
-    int pos = (7 * diff);
+    const int8_t diff = (i - GetHorizontalPos());
+    int8_t pos = (7 * diff);
     if (abs(diff) > 2) continue; // omit further options until 2 positions closer to index
     const bool below_index = (diff > 0); // pos starts from top to bottom; checking if item is below selected index
     pos = !match ? (below_index ? (pos + 1) : (pos - 2)) : pos; // spacing from matching index
@@ -341,7 +346,7 @@ void LCD_Gamemode()
   NavigateSelect(_m, list);
   StraightLine(2, 2);
   StraightLine(4, 4);
-  PositionSub("(1/2) - SELECT GAMEMODE", TextPos::TOP_LEFT);
+  PositionSub("1/2 - SELECT GAMEMODE", TextPos::TOP_LEFT);
   if (Flashing(1.2)) {
     screen.drawXBMP(2, (disp_height - 7), (disp_width - 4), 5, selectNav);
   }
@@ -356,7 +361,7 @@ void LCD_Difficulty()
   NavigateSelect(_m, list);
   StraightLine(2, 2);
   StraightLine(4, 4);
-  PositionSub("(2/2) - SELECT DIFFICULTY", TextPos::TOP_LEFT);
+  PositionSub("2/2 - SELECT DIFFICULTY", TextPos::TOP_LEFT);
   if (Flashing(1.2)) { ShowNav(selectNav); }
 }
 
@@ -409,6 +414,29 @@ void LCD_ConfigPage()
 
 void LCD_Results()
 {
+  const char* list[] = {"ROUND", "MODE", "DIFF", "GUESSES", "WORD"}
+  uint8_t stats_total = CheckMode(Gamemode::SPEED) ? 6 : 5;
+  if (CheckDiff(Difficulty::ENDLESS)) {
+    stats_total += 1;
+  }
+  SmallFont();
+  const uint8_t left_side = (disp_width / 3);
+  for (uint8_t i = 0; i < stats_total; i++) {
+    const char* c = list[i];
+    const uint8_t h_pos = GetHorizontalPos();
+    const int8_t diff = (i - h_pos);
+    const bool match = (diff == 0);
+    const bool at_bottom = (h_pos <= 5);
+
+    if (at_bottom) {
+      
+    }
+
+    const uint8_t str_width = screen.getStrWidth(c);
+    const uint8_t pos_X1 = (left_side - str_width),
+                  pos_Y1 = middle_Y + pos;
+    screen.drawStr(pos_X1, pos_Y1, c);
+  }
   StraightLine(2, 2);
   StraightLine(4, 4);
   PositionSub("RESULTS", TextPos::TOP_LEFT);
