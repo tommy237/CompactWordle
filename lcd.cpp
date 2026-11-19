@@ -529,7 +529,7 @@ void LCD_Results()
       default: break;
     }
     const uint8_t pos_X2 = right_side;
-    screen.drawStr(pos_X2, cur_Y, val_str);
+    screen.drawStr(pos_X2, cur_Y, val_ptr);
     // ——————— entry value display —————————————— //
 
     cur_Y += (height_spacing * i_offset);
