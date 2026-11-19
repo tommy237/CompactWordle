@@ -23,7 +23,7 @@ LetterState organizer[26][8] = {};
 // —————— program flags ——————————————————— //
 Page page_i = Page::TITLE;                    // current page
 GameState game_status = GameState::NONE;    // current result
-Gamemode gameMode = Gamemode::NONE;
+Gamemode game_mode = Gamemode::NONE;
 Difficulty difficulty = Difficulty::NONE;
 // —————— program flags ——————————————————— //
 
@@ -53,7 +53,7 @@ void goto_GamemodePage();
 // ———————— FLAG READING ———————— //
 GameState GetStatus() { return game_status; }
 Page GetPageNum() { return page_i; }
-Gamemode GetMode() { return gameMode; }
+Gamemode GetMode() { return game_mode; }
 Difficulty GetDiff() { return difficulty; }
 LetterState GetLetterStatus(const uint8_t i) { return indicator[i]; }
 // ———————— FLAG READING ———————— //
@@ -72,7 +72,7 @@ int8_t GetVerticalPos() { return letter_pos; }
 // ———————— CONDITIONAL READING ———————— //
 bool CheckStatus(GameState status) { return game_status == status; }
 bool CheckPage(Page pg) { return page_i == pg; }
-bool CheckMode(Gamemode select) { return gameMode == select; }
+bool CheckMode(Gamemode select) { return game_mode == select; }
 bool CheckDiff(Difficulty diff) { return difficulty == diff; }
 bool GetLastWordValid() { return guess_valid; }
 // ———————— CONDITIONAL READING ———————— //
@@ -432,8 +432,8 @@ void update_GamemodePage()
   if (Lft()) { goto_MainMenu(); }
   if (Cnfrm()) {
     // --- applying pre-stats before the game section --- //
-    gameMode = static_cast<Gamemode>(char_pos);
-    switch(gameMode) {
+    game_mode = static_cast<Gamemode>(char_pos);
+    switch (game_mode) {
       case Gamemode::REGULAR: break;
       case Gamemode::SPEED: break;
       case Gamemode::DEATHMATCH: break;
@@ -521,7 +521,7 @@ void update_Config()
 void goto_MainMenu()
 {
   game_status = GameState::NONE;
-  gameMode = Gamemode::NONE;
+  game_mode = Gamemode::NONE;
   difficulty = Difficulty::NONE;
   ToPage(Page::MAIN_MENU);
   guesses = 0;

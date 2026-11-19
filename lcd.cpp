@@ -359,6 +359,35 @@ void OnLockWait()
 // |————————————————————————————————————————————| //
 
 
+// |————————————————————————————————————————————| //
+// |————| CONVERSION FUNCTIONS |————————————————| //
+
+char* ModeToString(Gamemode mode)
+{
+  switch (mode) {
+    case Gamemode::REGULAR: return "WORDLE";
+    case Gamemode::SPEED: return "SPEED";
+    case Gamemode::DEATHMATCH: return "DEATHMATCH";
+    default: return "NONE";
+  }
+}
+
+char* DiffToString(Difficulty diff)
+{
+  switch (diff) {
+    case Difficulty::NORMAL: return "EASY";
+    case Difficulty::MODERATE: return "MODERATE";
+    case Difficulty::EXPERT: return "EXPERT";
+    case Difficulty::HARDCORE: return "HARDCORE";
+    case Difficulty::ENDLESS: return "ENDLESS";
+    default: return "NONE";
+  }
+}
+
+// |————| CONVERSION FUNCTIONS |————————————————| //
+// |————————————————————————————————————————————| //
+
+
 
 // |————————————————————————————————————————————| //
 // |————| PAGE FUNCTIONS |——————————————————————| //
@@ -467,10 +496,10 @@ void LCD_Results()
   const uint8_t max_display = 5;
   void* sc = GetSecretWord();
   SecretWord* sec = (SecretWord*)sc;
-  Entry list[] = {
+  const Entry list[] = {
     MakeEntry("ROUND", GetTotalRounds()),
-    MakeEntry("MODE", static_cast<uint8_t>(GetMode())),
-    MakeEntry("DIFF", static_cast<uint8_t>(GetDiff())),
+    MakeEntry("MODE", ModeToString(GetMode())),
+    MakeEntry("DIFF", DiffToString(GetDiff())),
     MakeEntry("GUESSES", GetLocalGuesses()),
     MakeEntry("WORD", sec->key),
   };
@@ -515,10 +544,10 @@ void LCD_Results()
     // ——————— entry key display —————————————— //
 
     // ——————— entry value display —————————————— //
-    const EntryType _type = list[i].type;
+    const EntryType entry_type = list[i].type;
     char val_str[16];
     const char* val_ptr;
-    switch(_type) {
+    switch (entry_type) {
       case EntryType::_INT: {
         snprintf(val_str, sizeof(val_str), "%lu", list[i].data.value);
         val_ptr = val_str;
@@ -539,9 +568,7 @@ void LCD_Results()
   StraightLine(2, 2);
   StraightLine(4, 4);
   PositionSub("RESULTS", TextPos::TOP_LEFT);
-  if (Flashing(1.2)) {
-    ShowNav(statsNav);
-  }
+  if (Flashing(1.2)) { ShowNav(statsNav); }
 }
 
 void Navigate_LCD()
@@ -551,7 +578,7 @@ void Navigate_LCD()
   } else {
     // displays the contents of the page 
     // to the LCD by the page number.
-    switch(GetPageNum()) {
+    switch (GetPageNum()) {
       // Main title //
       case Page::TITLE: Animate_Intro(); break;
 
