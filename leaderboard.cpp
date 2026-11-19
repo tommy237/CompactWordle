@@ -19,7 +19,8 @@ uint32_t total_guesses = 0,
          max_guesses = 0,
          guesses = 0,
          wrong_guesses = 0,
-         crrt_guesses = 0;
+         crrt_guesses = 0,
+         crrt_needed = 0;
 // —————— global vars ————————————————————— //
 
 
@@ -43,6 +44,61 @@ uint8_t GetMaxLocalRecords() { return MAX_LOCAL_RECORDS; }
 
 
 // |————————————————————————————————————————————| //
+// |————| ENTRY SAVING |————————————————————————| //
+Entry EntryModify(Entry* entry, const char* key, EntryType type) {
+  entry->type = type;
+  entry->key = key;
+  return *entry;
+}
+
+Entry MakeEntry(const char* key, uint32_t value) {
+  Entry e = EntryModify(&e, key, EntryType::_INT);
+  e.data.value = value;
+  return e;
+}
+
+Entry MakeEntry(const char* key, const char* str) {
+  Entry e = EntryModify(&e, key, EntryType::_STRING);
+  e.data.str = str;
+  return e;
+}
+// |————| ENTRY SAVING |————————————————————————| //
+// |————————————————————————————————————————————| //
+
+
+
+// |————————————————————————————————————————————| //
+// |————| ROUND RECORDING |—————————————————————| //
+
+Record MakeRecord(uint32_t   id = 0, 
+               Gamemode    mode = Gamemode::NONE, 
+               Difficulty  diff = Difficulty::NONE, 
+               GameState status = GameState::NONE, 
+               const char* last_word = "",
+               uint16_t guesses = 0) {
+  Record rec;
+  rec.id         = id;
+  rec.gamemode   = mode;
+  rec.difficulty = diff;
+  rec.status     = status;
+  rec.last_word  = last_word;
+  rec.guesses    = guesses;
+  return rec;
+}
+
+Record* GetLocalRecord(uint8_t i)
+{
+  if ((i >= curr_local_rec_size) || (i < 0)) return nullptr;
+  uint32_t offset_i = ((total_rounds - curr_local_rec_size) + i) % MAX_LOCAL_RECORDS;
+  return &local_records[offset_i];
+}
+
+// |————| ROUND RECORDING |—————————————————————| //
+// |————————————————————————————————————————————| //
+
+
+
+// |————————————————————————————————————————————| //
 // |————| DATA SAVING |—————————————————————————| //
 
 void ClearGuesses() {
@@ -61,9 +117,9 @@ void TallyGuesses()
 }
 
 void AddGuess(bool correct) {
-  uint32_t counter = correct ? &crrt_guesses : &wrong_guesses;
+  uint32_t* counter = correct ? &crrt_guesses : &wrong_guesses;
   guesses++;
-  counter++;
+  (*counter)++;
 }
 
 void AddGuessClearWrong(bool correct) {
@@ -78,8 +134,14 @@ void AddGameResults()
   total_rounds++;
   const void* sc = GetSecretWord();
   const SecretWord* sec = (SecretWord*)sc;
-  const Record new_rec(total_rounds, GetMode(), GetDiff(), GetStatus(), sec->key, GetLocalGuesses());
-  strncpy(new_rec.last_word, sec->key, sizeof(new_rec.last_word) - 1);
+  Record new_rec = MakeRecord(
+    total_rounds, 
+    GetMode(), 
+    GetDiff(), 
+    GetStatus(), 
+    const_cast<char*>(sec->key), 
+    guesses);
+  // strncpy(new_rec.last_word, sec->key, sizeof(new_rec.last_word) - 1);
   const bool below_max = (curr_local_rec_size < MAX_LOCAL_RECORDS);
   const uint8_t max_i = (MAX_LOCAL_RECORDS - 1);
   // when all records are pushed down in the array, 
@@ -93,13 +155,6 @@ void AddGameResults()
   // makes sure local_records[] is completely filled with new records.
   if (below_max) curr_local_rec_size++;
   TallyGuesses();
-}
-
-Record* GetLocalRecord(uint8_t i)
-{
-  if ((i >= curr_local_rec_size) || (i < 0)) return nullptr;
-  uint32_t offset_i = ((total_rounds - curr_local_rec_size) + i) % MAX_LOCAL_RECORDS;
-  return &local_records[offset_i];
 }
 
 // |————| DATA SAVING |—————————————————————————| //

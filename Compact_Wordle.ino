@@ -30,5 +30,5 @@ void AutomaticResponse()
     if (!NoResp()) { update_Screen(); }
     update_Status();
   }
-  OnWait();
+  OnLockWait();
 }

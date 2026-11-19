@@ -43,10 +43,14 @@ extern const char* MENU_BUTTONS[];
 
 // —————— public functions ————————————————— //
 bool OnPopup();
-void SetDisplayFlag(bool toggle);
 void Animate_Intro();
 void Init_LCD();
 void Navigate_LCD();
+
+void SetDisplayFlag(bool toggle);
+void AuthorPrompt(int prompt_delay);
+void SetLock(int lock_delay);
+void OnLockWait();
 // —————— public functions ————————————————— //
 
 #endif

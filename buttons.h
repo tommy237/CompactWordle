@@ -17,11 +17,11 @@ enum class ButtonToggle { HOLD,CLICK };
 
 // —————— structures ————————————————— //
 struct Button {
-  const byte pin;
+  const uint8_t pin;
   const ButtonAction action;
   const ButtonToggle toggle;
   unsigned long last_debounce;
-  int last_state;
+  uint8_t last_state;
   bool is_repeating;
   int c;
 };

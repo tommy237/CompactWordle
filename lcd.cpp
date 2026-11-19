@@ -12,6 +12,8 @@ const uint8_t middle_X = (disp_width / 2),
               middle_Y = (disp_height / 2);
 bool displayFlag = false;
 const char* MENU_BUTTONS[] = {"PLAY", "GUIDE", "STATS", "RANKS", "CONFIG"};
+unsigned long last_lock_ms = 0;
+unsigned int last_delay = 0;
 // —————— global vars ————————————————————— //
 
 
@@ -21,7 +23,7 @@ const char* MENU_BUTTONS[] = {"PLAY", "GUIDE", "STATS", "RANKS", "CONFIG"};
 
 void Init_LCD()
 {
-  if (!screen.begin();) {
+  if (!screen.begin()) {
     Serial.println("LCD failed to initialize.");
     while (1);
   }
@@ -139,25 +141,30 @@ bool OnPopup() { return displayFlag; }
 void NavigateSelect(size_t maximum, const char* selects[])
 {
   screen.setFont(u8g2_font_tiny5duo_te);
-  const uint8_t box_height = 8;
+
+  const uint8_t box_height      = 8,
+                height_spacing  = 7;
+
+  const uint8_t arrow_padding   = 4, 
+                arrow_spacing   = 8, 
+                arrow_thickness = 4;
+
   for (size_t i = 0; i < maximum; i++) {
+    const uint8_t h_pos = GetHorizontalPos();
     const char* c = selects[i];
-    const bool match = (i == GetHorizontalPos()); // if index matches current option
-    const int8_t diff = (i - GetHorizontalPos());
-    int8_t pos = (7 * diff);
+    const int8_t diff = (i - h_pos);
+    const bool match = (diff == 0); // if index matches current option
+    int8_t pos = (height_spacing * diff);
     if (abs(diff) > 2) continue; // omit further options until 2 positions closer to index
     const bool below_index = (diff > 0); // pos starts from top to bottom; checking if item is below selected index
     pos = !match ? (below_index ? (pos + 1) : (pos - 2)) : pos; // spacing from matching index
     if (match) {
-      const uint8_t arrowPadding = 4, 
-                    arrowSpacing = 8, 
-                    arrowThickness = 4;
-      const uint8_t box_width = screen.getStrWidth(c) + arrowPadding;
-      const uint8_t back = MidPt(disp_width, 0) - (box_width / 2) - arrowSpacing, 
-                    mid_height = MidPt(disp_height, 0);
-      screen.drawTriangle(back,                  mid_height - (box_height / 2),   // top back
-                          back,                  mid_height + (box_height / 2),   // bottom back
-                          back + arrowThickness, mid_height       ); // pointy tip
+      const uint8_t box_width = screen.getStrWidth(c) + arrow_padding;
+      const uint8_t arrow_back_h_pos = MidPt(disp_width, 0) - (box_width / 2) - arrow_spacing, 
+                    mid_arrow_height = MidPt(disp_height, 0);
+      screen.drawTriangle(arrow_back_h_pos,                   mid_arrow_height - (box_height / 2),   // top back
+                          arrow_back_h_pos,                   mid_arrow_height + (box_height / 2),   // bottom back
+                          arrow_back_h_pos + arrow_thickness, mid_arrow_height);                     // pointy tip
       // box dimensions
       BevelBox(MidPt(disp_width, box_width), 
                MidPt(disp_height, box_height),
@@ -289,8 +296,8 @@ void DisplayPopup()
       const uint8_t gameover_pos_X =  9, gameover_width = 108,
                     youwin_pos_X   = 23, youwin_width   = 81;
       const bool endless  = CheckDiff(Difficulty::ENDLESS), 
-                 hasWon   = CheckStatus(GameState::WON), 
-                 gameover = (!hasWon || endless);
+                 has_won   = CheckStatus(GameState::WON), 
+                 gameover = (!has_won || endless);
       const uint8_t x     = (gameover ? gameover_pos_X : youwin_pos_X), 
                     width = (gameover ? gameover_width : youwin_width);
       screen.drawXBMP(x, 8, width, 34, (gameover ? gameoverImg : youwinImg));
@@ -308,6 +315,47 @@ void SetDisplayFlag(bool toggle)
 }
 
 // |————| DISPLAY FUNCTIONS |———————————————————| //
+// |————————————————————————————————————————————| //
+
+
+
+// |————————————————————————————————————————————| //
+// |————| SCREEN LOCKING |——————————————————————| //
+
+void UpdateLockTime(int del) 
+{
+  last_lock_ms = millis();
+  last_delay = del;
+}
+
+void AuthorPrompt(int prompt_delay) 
+{
+  if (!OnPopup()) { 
+    SetDisplayFlag(true);
+    UpdateLockTime(prompt_delay);
+  }
+}
+
+void SetLock(int lock_delay) 
+{
+  if (!OnLocked()) {
+    LockButtons(true);
+    UpdateLockTime(lock_delay);
+  }
+}
+
+void OnLockWait() 
+{
+  // const uint16_t to_seconds = 1E3;
+  const unsigned long ms = millis(), 
+                      diff_ms = (ms - last_lock_ms);
+  if (diff_ms > TO_SECONDS(last_delay)) {;
+    if (OnPopup()) { SetDisplayFlag(false); } // locking the game
+    else if (OnLocked()) { LockButtons(false); } // locking the buttons
+  }
+}
+
+// |————| SCREEN LOCKING |——————————————————————| //
 // |————————————————————————————————————————————| //
 
 
@@ -333,23 +381,19 @@ void LCD_Menu()
   // BigText(2, 1, "MENU");
   screen.drawXBMP(2, 2, (disp_width - 2), 7, menuImg);
   NavigateSelect(LENG(MENU_BUTTONS), MENU_BUTTONS);
-  if (Flashing(1.2)) {
-    screen.drawXBMP(2, (disp_height - 7), (disp_width - 4), 5, menuNav);
-  }
+  if (Flashing(1.2)) { ShowNav(menuNav); }
 }
 
 // Displays the gamemode menu after LCD_Menu().
 void LCD_Gamemode()
 {
   const char* list[] = {"WORDLE", "SPEED", "DEATHMATCH"};
-  const uint8_t _m = static_cast<uint8_t>(Gamemode::numGamemodes);
-  NavigateSelect(_m, list);
+  const uint8_t amount = static_cast<uint8_t>(Gamemode::numGamemodes);
+  NavigateSelect(amount, list);
   StraightLine(2, 2);
   StraightLine(4, 4);
   PositionSub("1/2 - SELECT GAMEMODE", TextPos::TOP_LEFT);
-  if (Flashing(1.2)) {
-    screen.drawXBMP(2, (disp_height - 7), (disp_width - 4), 5, selectNav);
-  }
+  if (Flashing(1.2)) { ShowNav(selectNav); }
 }
 
 // displays the difficulty menu after LCD_Gamemode(). //
@@ -357,8 +401,8 @@ void LCD_Difficulty()
 {
   const char* list[] = {"EASY", "MODERATE", 
           "EXPERT", "HARDCORE", "ENDLESS"};
-  const uint8_t _m = static_cast<uint8_t>(Difficulty::numDiffs);
-  NavigateSelect(_m, list);
+  const uint8_t amount = static_cast<uint8_t>(Difficulty::numDiffs);
+  NavigateSelect(amount, list);
   StraightLine(2, 2);
   StraightLine(4, 4);
   PositionSub("2/2 - SELECT DIFFICULTY", TextPos::TOP_LEFT);
@@ -374,11 +418,17 @@ void LCD_Game()
   DisplayProgress();
   if (OnLocked()) {
     SmallFont();
+
     if (!GetLastWordValid()) {
       const char* txt = "! INVALID !";
       const uint8_t char_width = screen.getStrWidth(txt), 
                     char_height = screen.getMaxCharHeight();
       SmallText(MidPt(disp_width, char_width), disp_height - (char_height + 2), txt);
+    }
+    
+    // Displays the indicators as symbols.
+    else {
+
     }
   }
 }
@@ -414,29 +464,78 @@ void LCD_ConfigPage()
 
 void LCD_Results()
 {
-  const char* list[] = {"ROUND", "MODE", "DIFF", "GUESSES", "WORD"}
-  uint8_t stats_total = CheckMode(Gamemode::SPEED) ? 6 : 5;
-  if (CheckDiff(Difficulty::ENDLESS)) {
-    stats_total += 1;
-  }
+  const uint8_t max_display = 5;
+  void* sc = GetSecretWord();
+  SecretWord* sec = (SecretWord*)sc;
+  Entry list[] = {
+    MakeEntry("ROUND", GetTotalRounds()),
+    MakeEntry("MODE", static_cast<uint8_t>(GetMode())),
+    MakeEntry("DIFF", static_cast<uint8_t>(GetDiff())),
+    MakeEntry("GUESSES", GetLocalGuesses()),
+    MakeEntry("WORD", sec->key),
+  };
   SmallFont();
-  const uint8_t left_side = (disp_width / 3);
-  for (uint8_t i = 0; i < stats_total; i++) {
-    const char* c = list[i];
-    const uint8_t h_pos = GetHorizontalPos();
+  const uint8_t h_pos = GetHorizontalPos();
+
+  // Changing display ranges
+  const uint8_t stats_min = (h_pos >= max_display ? (h_pos - (max_display - 1)) : 0),
+                stats_max = (h_pos >= max_display ? (h_pos + 1) : max_display);
+
+  // Display text horizontal positioning
+  const uint8_t left_side = (disp_width / 3),
+                right_side = (disp_width / 2); // used later for displaying scores
+
+  // Display text vertical positioning
+  const uint8_t height_spacing = 1,
+                char_height = screen.getMaxCharHeight(),
+                total_height = (stats_max * (char_height + height_spacing)),
+                center_Y = MidPt(disp_height, total_height);
+
+  uint8_t cur_Y = center_Y;
+  for (uint8_t i = stats_min; i < stats_max; i++) {
+    const uint8_t i_offset = (i - stats_min); // fixes the vertical layout alignment of each entry.
     const int8_t diff = (i - h_pos);
-    const bool match = (diff == 0);
-    const bool at_bottom = (h_pos <= 5);
+    const bool match = (diff == 0),
+               below_index = (diff < i);
+    int8_t pos = (height_spacing * diff);
+    pos += match ? 0 : below_index ? 2 : -1;           
 
-    if (at_bottom) {
-      
+    // ——————— entry key display —————————————— //
+    const char* c = list[i].key;
+    const uint8_t str_width = screen.getStrWidth(c),
+                  pos_X1 = (left_side - str_width);
+    if (match) {
+      const uint8_t padding_X = 10;
+      const uint8_t box_width = (disp_width - (padding_X * 2)), 
+                    box_height = (char_height + 1);
+      screen.drawBox(padding_X, (cur_Y - 1), box_width, box_height);
+      SetColorMode(LCDColor::BLACK);
     }
+    screen.drawStr(pos_X1, cur_Y, c);
+    // ——————— entry key display —————————————— //
 
-    const uint8_t str_width = screen.getStrWidth(c);
-    const uint8_t pos_X1 = (left_side - str_width),
-                  pos_Y1 = middle_Y + pos;
-    screen.drawStr(pos_X1, pos_Y1, c);
+    // ——————— entry value display —————————————— //
+    const EntryType _type = list[i].type;
+    char val_str[16];
+    const char* val_ptr;
+    switch(_type) {
+      case EntryType::_INT: {
+        snprintf(val_str, sizeof(val_str), "%lu", list[i].data.value);
+        val_ptr = val_str;
+      } break;
+      case EntryType::_STRING: {
+        val_ptr = list[i].data.str;
+      } break;
+      default: break;
+    }
+    const uint8_t pos_X2 = right_side;
+    screen.drawStr(pos_X2, cur_Y, val_str);
+    // ——————— entry value display —————————————— //
+
+    cur_Y += (height_spacing * i_offset);
+    SetColorMode(LCDColor::WHITE);
   }
+
   StraightLine(2, 2);
   StraightLine(4, 4);
   PositionSub("RESULTS", TextPos::TOP_LEFT);

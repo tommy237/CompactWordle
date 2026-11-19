@@ -61,7 +61,6 @@ bool CheckDiff(Difficulty diff);
 
 void update_Screen();
 void update_Status();
-void OnWait();
 bool GetLastWordValid();
 // —————— public functions ———————————————— //
 
