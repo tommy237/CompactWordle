@@ -51,7 +51,7 @@ void DEBUG_Indicators()
         case LetterState::INCORRECT: Serial.print("0"); break;
         case   LetterState::PARTIAL: Serial.print("1"); break;
         case     LetterState::MATCH: Serial.print("2"); break;
-        default: Serial.print("0"); break;
+        default: Serial.print("x"); break;
       }
     }
     Serial.println(" /");
@@ -108,10 +108,11 @@ void DEBUG_Gamemode()
 {
   if (DEBUG_ON()) {
     Serial.print("Gamemode: ");
-    switch(static_cast<Gamemode>(GetHorizontalPos())) {
+    switch (static_cast<Gamemode>(GetHorizontalPos())) {
       case Gamemode::REGULAR: Serial.println("[a]    REGULAR"); break;
       case Gamemode::SPEED: Serial.println("[b]      SPEED"); break;
       case Gamemode::DEATHMATCH: Serial.println("[c] DEATHMATCH"); break;
+      default: Serial.println("[X]       NONE"); break;
     }
   }
 }
@@ -120,11 +121,13 @@ void DEBUG_Difficulty()
 {
   if (DEBUG_ON()) {
     Serial.print("Difficulty: ");
-    switch(static_cast<Difficulty>(GetHorizontalPos())) {
+    switch (static_cast<Difficulty>(GetHorizontalPos())) {
       case Difficulty::NORMAL: Serial.println("*    (NORMAL)"); break;
       case Difficulty::MODERATE: Serial.println("**   (MODERATE)"); break;
       case Difficulty::EXPERT: Serial.println("***  (EXPERT)"); break;
       case Difficulty::HARDCORE: Serial.println("**** (HARDCORE)"); break;
+      case Difficulty::ENDLESS: Serial.println("***** (ENDLESS)"); break;
+      default: Serial.println("NONE"); break;
     }
   }
 }

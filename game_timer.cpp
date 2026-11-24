@@ -6,6 +6,8 @@
 
 // —————— global vars ————————————————————— //
 unsigned long last_time = 0;               // time in-between change
+unsigned long time_since_game = 0;
+unsigned long time_on_stop = 0;
 int minutes = 0;                           // in-game timer minutes
 int seconds = 0;                           // in-game timer seconds
 TimeState time_state = TimeState::STOPPED; // status of timer
@@ -25,6 +27,37 @@ bool TimePaused() { return time_state == TimeState::PAUSED; }
 
 // |————| RETURN FUNCTIONS |————————————————————| //
 // |————————————————————————————————————————————| //
+
+
+
+// |—————————————————————————————————————————————| //
+// |————| TIME POCKET FUNCTIONS |————————————————| //
+
+void SetStopwatch() { time_since_game = millis(); }
+void StopTheWatch() { time_on_stop = (millis() - time_since_game); }
+uint32_t AttainStopwatch() { return (uint32_t)(time_on_stop / 1E3); }
+
+TimePocket TimeConvertSeconds(uint32_t secs = 0)
+{
+  TimePocket temp;
+  temp.days = floor(secs / SECS_TO_DAYS);
+  temp.hrs  = (secs / SECS_TO_HRS) % 24;
+  temp.mins = (secs / SECS_TO_MINS) % 60;
+  temp.secs = (secs % 60);
+  return temp;
+}
+
+const char* TimePocketString(char* buffer, uint8_t b_size, TimePocket temp)
+{
+  if      (temp.days > 0) { snprintf(buffer, b_size, "%dd %dh %dm %ds", temp.days, temp.hrs , temp.mins, temp.secs); }
+  else if (temp.hrs > 0)  { snprintf(buffer, b_size, "%dh %dm %ds"    , temp.hrs , temp.mins, temp.secs); }
+  else if (temp.mins > 0) { snprintf(buffer, b_size, "%dm %ds"        , temp.mins, temp.secs); }
+  else                    { snprintf(buffer, b_size, "%ds"            , temp.secs); }
+  return buffer;
+}
+
+// |————| TIME POCKET FUNCTIONS |————————————————| //
+// |—————————————————————————————————————————————| //
 
 
 
@@ -87,3 +120,4 @@ void UpdateTimer(int mins, int secs)
 
 // |————| TIMER FUNCTIONS |——————————————————————| //
 // |—————————————————————————————————————————————| //
+

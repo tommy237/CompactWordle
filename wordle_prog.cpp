@@ -10,8 +10,6 @@ static SecretWord sec;
 uint8_t word_len = 5;                       // current secret word length
 uint8_t char_pos = 0;                         // pos of current letter of guessing word.
 uint8_t letter_pos = 0;                       // pos of alphabet selection.
-unsigned long last_lock_ms = 0;
-unsigned int last_delay = 0;
 bool guess_valid = false;
 char arrangement[10] = {};                  // current letter arrangement
 LetterState indicator[10] = {};             // current letter indicators
@@ -60,7 +58,6 @@ LetterState GetLetterStatus(const uint8_t i) { return indicator[i]; }
 
 // ———————— SIZE READING ———————— //
 size_t GetTotalWords() { return num_words; }
-size_t GetTotalGuesses() { return guesses; }
 uint8_t GetWordLength() { return word_len; }
 // ———————— SIZE READING ———————— //
 
@@ -197,9 +194,10 @@ void SeekLetter()
     if (ud != 0) { 
       const uint8_t last_index = (ALPHASIZE - 2);
       const int i = (letter_pos + (ud * GetScrollSpeed()));
-      const bool below = (i < 0), 
+      const bool out_of_bounds = ((i >= ALPHASIZE) && (ud == -1));
+      const bool below = (i < 0) || out_of_bounds, 
                  above = (i >= (ALPHASIZE - 1));
-      letter_pos = below ? last_index : above ? 0 : i;
+      letter_pos = below ? last_index : (above ? 0 : i);
       arrangement[char_pos] = ALPHABET_NUMBER[letter_pos];
     }
     
@@ -235,6 +233,13 @@ void ToPage(Page pg)
 // |——————————————————————————————| //
 // |————| MAIN GAME UI |——————————| //
 
+void FinalizeGame()
+{
+  StopTheWatch();
+  AuthorPrompt(7);
+  ToPage(Page::RESULTS);
+}
+
 void GameWin() 
 {
   game_status = GameState::WON;
@@ -242,16 +247,13 @@ void GameWin()
   if (CheckDiff(Difficulty::ENDLESS)) {
     
   }
-  AuthorPrompt(7);
-  ToPage(Page::RESULTS);
-  
+  FinalizeGame();
 }
 
 void GameLose() 
 {
   game_status = GameState::LOST;
-  AuthorPrompt(7);
-  ToPage(Page::RESULTS);
+  FinalizeGame();
 }
 
 bool Confirmation()
@@ -276,7 +278,7 @@ bool Confirmation()
                            (crrt_guesses > 5 ) ? 3 : 
                            (crrt_guesses > 3 ) ? 4 : 5;
       UpdateTimer(mins - GetMinutes(), 
-                  0 - GetSeconds());
+                     0 - GetSeconds());
     }
     return !endless; // must return false,  endless mode
   }
@@ -340,6 +342,7 @@ void PlayGame()
     if (!CheckMode(Gamemode::REGULAR)) {
       PlayTimer();
     }
+    SetStopwatch();
   }
 }
 
@@ -371,7 +374,6 @@ void update_GameHud()
   }
   const bool correct = CorrectWord(arrangement);
   DEBUG_Indicators(); // comment out if not needed
-  guesses++;
   SetLock(1);
   AddGuessClearWrong(correct);
   if (correct && Confirmation()) GameWin();
@@ -389,7 +391,7 @@ void update_GameHud()
 void ExitToMenu(const uint8_t num)
 {
   goto_MainMenu();
-  char_pos = num;
+  letter_pos = num;
 }
 
 // |————| MAIN GAME UI |——————————| //
@@ -405,11 +407,11 @@ void goto_DiffPage() { ToPage(Page::DIFF_SELECT); }
 void update_DiffPage()
 {
   const uint8_t n_diffs = static_cast<uint8_t>(Difficulty::numDiffs);
-  Scrolling(&char_pos, n_diffs, -UpDwn());
+  Scrolling(&letter_pos, n_diffs, -UpDwn());
   // if (LftRgt() == 0) { DEBUG_Difficulty(); } // comment out if not needed
   if (Lft()) { goto_GamemodePage(); }
   if (Cnfrm()) {
-    difficulty = static_cast<Difficulty>(char_pos);
+    difficulty = static_cast<Difficulty>(letter_pos);
     PlayGame();
   }
 }
@@ -427,16 +429,17 @@ void goto_GamemodePage() { ToPage(Page::GAMEMODE_SELECT); }
 void update_GamemodePage()
 {
   const uint8_t n_modes = static_cast<uint8_t>(Gamemode::numGamemodes);
-  Scrolling(&char_pos, n_modes, -UpDwn());
+  Scrolling(&letter_pos, n_modes, -UpDwn());
   // if (LftRgt() == 0) { DEBUG_Gamemode(); } // comment out if not needed
   if (Lft()) { goto_MainMenu(); }
   if (Cnfrm()) {
     // --- applying pre-stats before the game section --- //
-    game_mode = static_cast<Gamemode>(char_pos);
+    game_mode = static_cast<Gamemode>(letter_pos);
     switch (game_mode) {
       case Gamemode::REGULAR: break;
       case Gamemode::SPEED: break;
       case Gamemode::DEATHMATCH: break;
+      default: break;
     }
     // -------------------------------------------------- //
     goto_DiffPage();
@@ -469,13 +472,34 @@ void update_Guide()
 
 void goto_StatsPage() { ToPage(Page::STATS); }
 
+uint8_t last_record = 0;
 void update_Stats()
 {
-  uint32_t amnt_rounds = GetTotalRounds();
-  if (amnt_rounds > 0) {
-    uint8_t max_records = GetMaxLocalRecords();
-    Scrolling(&letter_pos, constrain(amnt_rounds, 0, max_records), -UpDwn());
-  }
+  const uint32_t amnt_rounds = GetTotalRounds();
+  const bool has_rounds = (amnt_rounds > 0);
+  Scrolling(&char_pos, has_rounds ? 3 : 2, LftRgt());
+  // const uint8_t selection = GetHorizontalPos();
+  // if (Lft() && selection == 1) {
+  //   letter_pos = 0;
+  // }
+  // switch (selection) {
+  //   case 0 : {
+
+  //   } break;
+  //   case 1 : {
+  //     if (has_rounds) {
+  //       const uint8_t max_records     = GetMaxLocalRecords(),
+  //                     current_records = constrain(amnt_rounds, 0, max_records - 1);
+  //       Scrolling(&letter_pos, current_records, -UpDwn());
+  //       last_record = GetVerticalPos();
+  //     }
+  //   } break;
+  //   case 2 : {
+  //     const uint8_t index = 0;
+  //     Scrolling(&letter_pos, 7, -UpDwn());
+
+  //   } break;
+  // }
   
   if (Cnfrm()) { ExitToMenu(2); }
 }
@@ -524,7 +548,7 @@ void goto_MainMenu()
   game_mode = Gamemode::NONE;
   difficulty = Difficulty::NONE;
   ToPage(Page::MAIN_MENU);
-  guesses = 0;
+  ClearGuesses();
 }
 
 void show_TitlePage()
@@ -536,10 +560,10 @@ void show_TitlePage()
 
 void update_MainMenu()
 {
-  Scrolling(&char_pos, 5, -UpDwn());
+  Scrolling(&letter_pos, 5, -UpDwn());
   if (Lft()) { ToPage(Page::TITLE); };
   if (Cnfrm()) {
-    switch (char_pos) {
+    switch (letter_pos) {
       case 0: goto_GamemodePage(); break;
       case 1: goto_GuidePage(); break;
       case 2: goto_StatsPage(); break;
@@ -561,9 +585,10 @@ void update_MainMenu()
 void print_Results()
 {
   const int8_t ud = -UpDwn();
-  int8_t stats_total = 5;
+  const uint8_t stats_total = 7;
   Scrolling(&letter_pos, stats_total, ud);  // up/down cursor
   if (Cnfrm()) {
+    AddGameResults();
     goto_MainMenu();
   }
 }

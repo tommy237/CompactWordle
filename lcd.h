@@ -30,6 +30,9 @@ enum class TextPos { TOP_LEFT, TOP_RIGHT, BTM_LEFT, BTM_RIGHT };
 #define SCROLL_SPACING 2    // vertical spacing between selected item
 #define LCD_CHAR_SPACING 1  // horizontal spacing between characters in game
 #define NUM_GUIDE_PAGES 20
+
+#define NAV_XBMP_HEIGHT 5
+#define NAV_Y_POS_OFFSET (LCD_HEIGHT - (uint8_t)7)
 // —————— settings ———————————————————————— //
 
 

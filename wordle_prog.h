@@ -18,7 +18,7 @@
 
 
 // —————— number positioning —————————————— //
-extern size_t guesses;  // current # of guesses in game.
+// extern size_t guesses;  // current # of guesses in game.
 // extern int scrollSpeed; // speed of char scrolling when holding.
 // —————— number positioning —————————————— //
 
@@ -48,9 +48,6 @@ LetterState GetLetterStatus(const uint8_t i);
 
 int8_t GetHorizontalPos();
 int8_t GetVerticalPos();
-size_t GetMaxGuesses();
-size_t GetWrongGuesses();
-size_t GetCorrectGuesses();
 uint8_t GetWordLength();
 void* GetSecretWord();
 
