@@ -21,6 +21,20 @@ unsigned int last_delay = 0;
 // |————————————————————————————————————————————| //
 // |————| MODIFIED U8g2 |———————————————————————| //
 
+void Animate_Intro() {
+  if (GetPageNum() == Page::TITLE) {
+    const uint8_t bitmap_height = 28;
+    for (uint8_t i = 0; i < bitmap_height; i++) {
+      screen.drawXBMP(
+        15,
+        disp_height - (14 + bitmap_height),
+        98,
+        (i + 1),
+        title_img);
+    }
+  }
+}
+
 void Init_LCD()
 {
   if (!screen.begin()) {
@@ -29,19 +43,30 @@ void Init_LCD()
   }
   screen.setFontRefHeightText();
   screen.setFontPosTop();
+  Animate_Intro();
 }
 
 void SmallFont() { screen.setFont(u8g2_font_tiny5_tr); }
 void BoldFont() { screen.setFont(u8g2_font_helvB08_tr); }
 void SetColorMode(LCDColor pte) { screen.setDrawColor(static_cast<uint8_t>(pte)); }
-void ShowFullNav(const uint8_t* xbmp) { screen.drawXBMP(2, (disp_height - 7), (disp_width - 4), 5, xbmp); }
 void ShowNav(const uint8_t* xbmp, uint8_t x, uint8_t w) { screen.drawXBMP(x, NAV_Y_POS_OFFSET, w, NAV_XBMP_HEIGHT, xbmp); }
 bool Flashing(double i) { return (millis() % (long)(i * 1E3)) < (i * 0.5E3); }
+void StraightLine(const uint8_t h, const uint8_t padding) { screen.drawLine(padding, h, (disp_width - (padding + 1)), h); }
 u8g2_uint_t MidPt(u8g2_uint_t pos1, u8g2_uint_t pos2) { return (pos1 - pos2) / 2; }
 
+void ShowLogo(const uint8_t* xbmp, uint8_t w, uint8_t h) { 
+  SetColorMode(LCDColor::WHITE);
+  StraightLine(2, 2);
+  StraightLine(4, 4);
+  SetColorMode(LCDColor::BLACK);
+  screen.drawBox(0, 0, (w + 2), (h + 2));
+  SetColorMode(LCDColor::WHITE);
+  screen.drawXBMP(2, 2, w, h, xbmp);
+}
+
 void BevelBox(uint8_t x, uint8_t y, uint8_t w, uint8_t h) {
-  screen.drawBox(x + 1, y, w - 2, h);
-  screen.drawBox(x, y + 1, w, h - 2);
+  screen.drawBox((x + 1), y, (w - 2), h);
+  screen.drawBox(x, (y + 1), w, (h - 2));
 }
 
 void CenterText(int8_t x, int8_t y, const char* str)
@@ -107,11 +132,6 @@ void SmallText(uint8_t poX, uint8_t poY, const char* str)
   SmallFont();
   const uint8_t char_height = screen.getMaxCharHeight();
   screen.drawStr(poX, (poY - char_height), str);
-}
-
-void StraightLine(const uint8_t h, const uint8_t padding)
-{
-  screen.drawLine(padding, h, (disp_width - (padding + 1)), h);
 }
 
 void PositionSub(const char* str, TextPos pos)
@@ -362,14 +382,15 @@ void DisplayPopup()
       const uint8_t gameover_pos_X =  9, gameover_width = 108,
                     youwin_pos_X   = 23, youwin_width   = 81;
       const bool endless  = CheckDiff(Difficulty::ENDLESS), 
-                 has_won   = CheckStatus(GameState::WON), 
+                 has_won  = CheckStatus(GameState::WON), 
                  gameover = (!has_won || endless);
       const uint8_t x     = (gameover ? gameover_pos_X : youwin_pos_X), 
                     width = (gameover ? gameover_width : youwin_width);
-      screen.drawXBMP(x, 8, width, 34, (gameover ? gameoverImg : youwinImg));
+      screen.drawXBMP(x, 8, width, 34, (gameover ? gameover_img : youwin_img));
       DisplaySecretWord();
     } else {
-      StraightLine(2, 2); StraightLine(4, 4);
+      StraightLine(2, 2);
+      StraightLine(4, 4);
       screen.drawXBMP(2, 51, (disp_width - 4), 11, loadingImg); // loading screen
     }
   }
@@ -458,12 +479,13 @@ const char* DiffToString(Difficulty diff)
 // |————————————————————————————————————————————| //
 // |————| PAGE FUNCTIONS |——————————————————————| //
 
-void Animate_Intro()
+void LCD_Title()
 {
   const char* str = "PRESS [BLUE] TO PLAY.";
-  screen.drawXBMP(15, 14, 98, 28, logoImg); SmallFont();
+  screen.drawXBMP(15, 14, 98, 28, title_img);
+  SmallFont();
   const uint8_t char_height = (screen.getMaxCharHeight()/2), 
-                char_width = screen.getStrWidth(str);
+                char_width  = screen.getStrWidth(str);
   if (Flashing(1.2)) {
     screen.drawStr(MidPt(disp_width, char_width), 
       (disp_height - (char_height + 5)), str);
@@ -473,8 +495,7 @@ void Animate_Intro()
 // Displays the 
 void LCD_Menu()
 {
-  // BigText(2, 1, "MENU");
-  screen.drawXBMP(2, 2, (disp_width - 2), 7, menuImg);
+  ShowLogo(menu_logo, 36, 7);
   NavigateSelect(LENG(MENU_BUTTONS), MENU_BUTTONS);
   if (Flashing(1.2)) { 
     ShowNav(ttl_nav,    2, 26);
@@ -553,14 +574,14 @@ void LCD_Game()
 // displays the guide navigation page to the LCD. //
 void LCD_GuidePage()
 {
-  const uint8_t nPages = NUM_GUIDE_PAGES;
-  screen.drawXBMP(2, 2, (disp_width - 2), 9, guideImg);
+  const uint8_t num_pages = NUM_GUIDE_PAGES;
+  ShowLogo(guide_logo, 34, 9);
   char footer[16];
   snprintf(footer, 
     sizeof(footer), 
     "PAGE %d OF %d", 
     (GetHorizontalPos() + 1), 
-    nPages);
+    num_pages);
   PositionSub(footer, TextPos::TOP_RIGHT);
   if (Flashing(1.2)) { 
     ShowNav(seek_nav,   2, 33);
@@ -570,7 +591,7 @@ void LCD_GuidePage()
 
 void LCD_StatsPage()
 {
-  screen.drawXBMP(2, 2, (disp_width - 2), 7, statsImg);
+  ShowLogo(stats_logo, 41, 7);
   const bool in_history_page = (GetHorizontalPos() > 0);
   PositionSub(in_history_page ? "HISTORY" : "GLOBAL", TextPos::TOP_RIGHT);
   if (in_history_page) {
@@ -601,7 +622,7 @@ void LCD_StatsPage()
 
 void LCD_RanksPage()
 {
-  screen.drawXBMP(2, 2, (disp_width - 2), 7, ranksImg);
+  ShowLogo(ranks_logo, 39, 7);
   if (Flashing(1.2)) {
     ShowNav(list_nav,   2, 29);
     ShowNav(stat_nav,  41, 31);
@@ -611,7 +632,7 @@ void LCD_RanksPage()
 
 void LCD_ConfigPage()
 {
-  screen.drawXBMP(2, 2, (disp_width - 2), 9, configImg);
+  ShowLogo(config_logo, 41, 9);
   if (Flashing(1.2)) { 
     ShowNav(seek_nav,   2, 33);
     ShowNav(exit_nav, 103, 23);
@@ -624,7 +645,7 @@ void LCD_Results()
   SecretWord* sec = (SecretWord*)sc;
   char time_buffer[16];
   const Entry list[] = {
-    MakeEntry("ROUND"  , GetTotalRounds() + 1),
+    MakeEntry("ROUND"  , (GetTotalRounds() + 1)),
     MakeEntry("MODE"   , ModeToString(GetMode())),
     MakeEntry("DIFF"   , DiffToString(GetDiff())),
     MakeEntry("GUESSES", GetLocalGuesses()),
@@ -654,7 +675,7 @@ void Navigate_LCD()
     // to the LCD by the page number.
     switch (GetPageNum()) {
       // Main title //
-      case Page::TITLE:           Animate_Intro(); break;
+      case Page::TITLE:           LCD_Title(); break;
 
       // Menu directory //
       case Page::MAIN_MENU:       LCD_Menu();       break;
