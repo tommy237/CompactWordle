@@ -13,30 +13,40 @@
 // —————— global vars ————————————————————— //
 struct SecretWord { char key[10]; };
 Record local_records[MAX_LOCAL_RECORDS];
-uint32_t total_rounds = 0, 
+
+uint32_t total_rounds = 0,
+         total_endless = 0,
+         total_won = 0,
          curr_local_rec_size = 0;
+
 uint32_t total_guesses = 0,
+         total_crrt = 0,
          max_guesses = 0,
          guesses = 0,
          wrong_guesses = 0,
          crrt_guesses = 0,
          crrt_needed = 0;
+
 // —————— global vars ————————————————————— //
 
 
 // |————————————————————————————————————————————| //
 // |————| RETURN FUNCTIONS |————————————————————| //
 
-uint32_t GetTotalGuesses() { return total_guesses; }
-uint32_t GetGuessLimit() { return max_guesses; }
-uint32_t GetLocalGuesses() { return guesses; }
+uint32_t GetTotalGuesses()   { return total_guesses; }
+uint32_t GetTotalCorrect()   { return total_crrt; }
+uint32_t GetLocalGuesses()   { return guesses; }
+uint32_t GetGuessLimit()     { return max_guesses; }
+uint32_t GetGuessGoal()      { return crrt_needed; }
 uint32_t GetCorrectGuesses() { return crrt_guesses; }
-uint32_t GetGuessGoal() { return crrt_needed; }
-uint32_t GetWrongGuesses() { return wrong_guesses; }
+uint32_t GetWrongGuesses()   { return wrong_guesses; }
 
-Record* GetLocalRecords() { return local_records; }
-uint32_t GetTotalRounds() { return total_rounds; }
+uint32_t GetTotalRounds()  { return total_rounds; }
+uint32_t GetTotalEndless() { return total_endless; }
+uint32_t GetTotalWon()     { return total_won; }
+
 uint8_t GetMaxLocalRecords() { return MAX_LOCAL_RECORDS; }
+Record* GetLocalRecords()    { return local_records; }
 
 // |————| RETURN FUNCTIONS |————————————————————| //
 // |————————————————————————————————————————————| //
@@ -113,6 +123,7 @@ void SetGuessGoal(uint32_t goal) { crrt_needed = goal; }
 void TallyGuesses()
 {
   total_guesses += guesses;
+  total_crrt += crrt_guesses;
   ClearGuesses();
 }
 
@@ -131,7 +142,12 @@ void AddGameResults()
 {
   if (CheckStatus(GameState::PLAYING)
    || CheckStatus(GameState::NONE)) return;
+
   total_rounds++;
+  const bool is_endless = CheckDiff(Difficulty::ENDLESS);
+  if (is_endless) total_endless++;
+  else if (CheckStatus(GameState::WON)) total_won++;
+
   const void* sc = GetSecretWord();
   const SecretWord* sec = (SecretWord*)sc;
   Record new_rec = MakeRecord(

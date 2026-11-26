@@ -23,7 +23,7 @@ int GetMinutes() { return minutes; }
 bool NoTime() { return (minutes <= 0) && (seconds <= 0); }
 bool TimeRunning() { return time_state == TimeState::PLAYING; }
 bool TimeStopped() { return time_state == TimeState::STOPPED; }
-bool TimePaused() { return time_state == TimeState::PAUSED; }
+bool TimePaused()  { return time_state == TimeState::PAUSED; }
 
 // |————| RETURN FUNCTIONS |————————————————————| //
 // |————————————————————————————————————————————| //
@@ -49,10 +49,17 @@ TimePocket TimeConvertSeconds(uint32_t secs = 0)
 
 const char* TimePocketString(char* buffer, uint8_t b_size, TimePocket temp)
 {
-  if      (temp.days > 0) { snprintf(buffer, b_size, "%dd %dh %dm %ds", temp.days, temp.hrs , temp.mins, temp.secs); }
-  else if (temp.hrs > 0)  { snprintf(buffer, b_size, "%dh %dm %ds"    , temp.hrs , temp.mins, temp.secs); }
-  else if (temp.mins > 0) { snprintf(buffer, b_size, "%dm %ds"        , temp.mins, temp.secs); }
-  else                    { snprintf(buffer, b_size, "%ds"            , temp.secs); }
+  // ———————————————— literal format ———————————————— //
+  // if      (temp.days > 0) { snprintf(buffer, b_size, "%dd %dh %dm %ds", temp.days, temp.hrs , temp.mins, temp.secs); }
+  // else if (temp.hrs > 0)  { snprintf(buffer, b_size, "%dh %dm %ds"    , temp.hrs , temp.mins, temp.secs); }
+  // else if (temp.mins > 0) { snprintf(buffer, b_size, "%dm %ds"        , temp.mins, temp.secs); }
+  // else                    { snprintf(buffer, b_size, "%ds"            , temp.secs); }
+  
+  // ———————————————— clock format ———————————————— //
+  if      (temp.days > 0) { snprintf(buffer, b_size, "%d:%02d:%02d:%02d", temp.days, temp.hrs , temp.mins, temp.secs); }
+  else if (temp.hrs > 0)  { snprintf(buffer, b_size, "%d:%02d:%02d"     , temp.hrs , temp.mins, temp.secs); }
+  else if (temp.mins > 0) { snprintf(buffer, b_size, "%d:%02d"          , temp.mins, temp.secs); }
+  else                    { snprintf(buffer, b_size,  "0:%02d"          , temp.secs); }
   return buffer;
 }
 
@@ -87,7 +94,7 @@ void StopTimer()
 void UpdateTime(bool count_up)
 {
   if (TimeRunning()) {
-    const unsigned long ms = millis(),
+    const unsigned long ms      = millis(),
                         diff_ms = (ms - last_time);
     if (diff_ms >= TO_SECONDS(1)) {
       last_time = ms;
@@ -95,8 +102,8 @@ void UpdateTime(bool count_up)
         const bool out_of_seconds = (seconds <= 0),
                    has_minutes    = (minutes > 0),
                    minute_reset   = (has_minutes && out_of_seconds);
-        minutes = minute_reset ? minutes - 1 : minutes;
-        seconds = minute_reset ? 59          : seconds - 1;
+        minutes = minute_reset ? (minutes - 1) : minutes;
+        seconds = minute_reset ? 59          : (seconds - 1);
         // DEBUG_Time();
         if (NoTime()) { StopTimer(); }
       } else {

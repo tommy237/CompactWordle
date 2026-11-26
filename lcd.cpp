@@ -1,5 +1,6 @@
 // —————— headers ————————————————————————— //
 #include "lcd.h"
+#include <inttypes.h>
 // —————— headers ————————————————————————— //
 
 
@@ -59,7 +60,7 @@ void ShowLogo(const uint8_t* xbmp, uint8_t w, uint8_t h) {
   StraightLine(2, 2);
   StraightLine(4, 4);
   SetColorMode(LCDColor::BLACK);
-  screen.drawBox(0, 0, (w + 2), (h + 2));
+  screen.drawBox(0, 0, (w + 4), (h + 4));
   SetColorMode(LCDColor::WHITE);
   screen.drawXBMP(2, 2, w, h, xbmp);
 }
@@ -77,23 +78,6 @@ void CenterText(int8_t x, int8_t y, const char* str)
   const uint8_t center_X = MidPt(disp_width, string_width), 
                 center_Y = MidPt(disp_height, string_height);
   screen.drawStr((center_X + x), center_Y + (string_height / 3) + y, str);
-}
-
-// Creates a text label with string centered on top of the display.
-void TopCenterText(const char* str)
-{
-  SmallFont();
-  const uint8_t char_width = screen.getStrWidth(str), 
-                char_height = (screen.getMaxCharHeight() / 2) - 3;
-  const uint8_t center_X = MidPt(disp_width, char_width);
-  SetColorMode(LCDColor::BLACK);
-  const uint8_t box_x = (center_X - 2),
-                box_y = (char_height - 1),
-                box_width = (char_width + 4),
-                box_height = (char_height + 1);
-  screen.drawBox(box_x, box_y, box_width, box_height);
-  SetColorMode(LCDColor::WHITE);
-  SmallText(center_X, char_height + 1, str);
 }
 
 // Creates a text label with a subtitle and target value,  often for in - game tracking
@@ -132,6 +116,23 @@ void SmallText(uint8_t poX, uint8_t poY, const char* str)
   SmallFont();
   const uint8_t char_height = screen.getMaxCharHeight();
   screen.drawStr(poX, (poY - char_height), str);
+}
+
+// Creates a text label with string centered on top of the display.
+void TopCenterText(const char* str)
+{
+  SmallFont();
+  const uint8_t char_width = screen.getStrWidth(str), 
+                char_height = (screen.getMaxCharHeight() / 2) + 2;
+  const uint8_t center_X = MidPt(disp_width, char_width);
+  SetColorMode(LCDColor::BLACK);
+  const uint8_t box_x = (center_X - 2),
+                box_y = 0,
+                box_width = (char_width + 4),
+                box_height = (char_height + 3);
+  screen.drawBox(box_x, box_y, box_width, box_height);
+  SetColorMode(LCDColor::WHITE);
+  SmallText(center_X, char_height + 3, str);
 }
 
 void PositionSub(const char* str, TextPos pos)
@@ -347,15 +348,15 @@ void DisplayProgress()
   }
   
   else {
-    const uint32_t maxG = GetGuessLimit(), 
-                  curG = GetWrongGuesses();
-    snprintf(footer, sizeof(footer), "%d/%d", curG, maxG);
+    const uint32_t max_g = GetGuessLimit(), 
+                  current_g = GetWrongGuesses();
+    snprintf(footer, sizeof(footer), "%" PRIu32 "/%" PRIu32, current_g, max_g);
     TrackerText("guesses", footer);
   }
 
   if (CheckDiff(Difficulty::ENDLESS)) {
-    const uint32_t corG = GetCorrectGuesses();
-    snprintf(footer, sizeof(footer), "%d correct", corG);
+    const uint32_t correct_g = GetCorrectGuesses();
+    snprintf(footer, sizeof(footer), "%" PRIu32" correct", correct_g);
     PositionSub(footer, TextPos::BTM_RIGHT);
   }
 }
@@ -518,7 +519,7 @@ void LCD_Gamemode()
   // PositionSub("1/2 - SELECT GAMEMODE", TextPos::TOP_LEFT);
   TopCenterText("[1/2] SELECT GAMEMODE");
   if (Flashing(1.2)) { 
-    ShowNav(return_nav, 2, 31);
+    ShowNav(return_nav, 2, 35);
     ShowNav(cnfrm_nav, 87, 39);
   }
 }
@@ -540,7 +541,7 @@ void LCD_Difficulty()
   // PositionSub("2/2 - SELECT DIFFICULTY", TextPos::TOP_LEFT);
   TopCenterText("[2/2] SELECT DIFFICULTY");
   if (Flashing(1.2)) {
-    ShowNav(return_nav, 2, 31);
+    ShowNav(return_nav, 2, 35);
     ShowNav(cnfrm_nav, 87, 39);
   }
 }
@@ -592,21 +593,42 @@ void LCD_GuidePage()
 void LCD_StatsPage()
 {
   ShowLogo(stats_logo, 41, 7);
+  const uint32_t total_rounds = GetTotalRounds();
   const bool in_history_page = (GetHorizontalPos() > 0);
-  PositionSub(in_history_page ? "HISTORY" : "GLOBAL", TextPos::TOP_RIGHT);
+  PositionSub(in_history_page ? "HISTORY" : "LOCAL", TextPos::TOP_RIGHT);
   if (in_history_page) {
-
+    if (total_rounds > 0) {
+      
+    } else {
+      const char* txt = "NO RECORDS YET";
+      const uint8_t str_width = screen.getStrWidth(txt);
+      screen.drawFrame((MidPt(disp_width, str_width) - 2), 
+        MidPt(disp_height, 5), (str_width + 4), 9);
+      CenterText(0, 0, txt);
+    }
   }
   
   else {
+    const uint32_t total_endless = GetTotalEndless(),
+                   total_won = GetTotalWon(),
+                   filtered_rounds = (total_rounds - total_endless),
+                   total_lost = (filtered_rounds - total_won);
+    const uint32_t total_guesses = GetTotalGuesses(),
+                   total_crrt = GetTotalCorrect(),
+                   total_wrng = (total_guesses - total_crrt);
+    const uint8_t float_padding = 2;
+    char ratio_buffer[4 + float_padding];
     const Entry list[] = {
-      MakeEntry("ROUNDS" , GetTotalRounds()),
-      MakeEntry("WINS"   , 1),
-      MakeEntry("LOSSES" , 1),
-      MakeEntry("GUESSES", GetTotalGuesses()),
-      MakeEntry("CORRECT", 1),
-      MakeEntry("WRONG"  , 1),
-      MakeEntry("RATIO"  , 1),
+      MakeEntry("ROUNDS" , total_rounds),
+      MakeEntry("WINS"   , total_won),
+      MakeEntry("LOSSES" , total_lost),
+      MakeEntry("ENDLESS", total_endless),
+      MakeEntry("RATIO"  , dtostrf((total_lost <= 0) 
+                                ? total_won 
+                                : (total_won / total_lost), 0, float_padding, ratio_buffer)),
+      MakeEntry("GUESSES", total_guesses),
+      MakeEntry("CORRECT", total_crrt),
+      MakeEntry("WRONG"  , total_wrng)
     };
     NavigateEntry(list);
   }
@@ -616,6 +638,8 @@ void LCD_StatsPage()
     ShowNav(exit_nav, 103, 23);
     if (!in_history_page) { 
       ShowNav(history_nav, 52, 38);
+    } else {
+      ShowNav(local_nav, (52 - 6), 29);
     }
   }
 }

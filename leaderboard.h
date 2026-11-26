@@ -45,12 +45,14 @@ struct Entry {
 
 // —————— public functions ————————————————— //
 uint32_t GetTotalGuesses();
+uint32_t GetTotalCorrect();
+
 uint32_t GetGuessLimit();
 uint32_t GetGuessGoal();
 uint32_t GetLocalGuesses();
 uint32_t GetCorrectGuesses();
 uint32_t GetWrongGuesses();
-uint8_t GetMaxLocalRecords();
+uint8_t  GetMaxLocalRecords();
 
 void ClearGuesses();
 void SetGuessLimit(uint32_t limit);
@@ -62,6 +64,8 @@ Entry MakeEntry(const char* key, uint32_t value);
 Entry MakeEntry(const char* key, const char* str);
 
 uint32_t GetTotalRounds();
+uint32_t GetTotalEndless();
+uint32_t GetTotalWon();
 void AddGameResults();
 
 Record MakeRecord(

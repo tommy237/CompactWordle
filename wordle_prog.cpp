@@ -477,29 +477,32 @@ void update_Stats()
 {
   const uint32_t amnt_rounds = GetTotalRounds();
   const bool has_rounds = (amnt_rounds > 0);
-  Scrolling(&char_pos, has_rounds ? 3 : 2, LftRgt());
-  // const uint8_t selection = GetHorizontalPos();
-  // if (Lft() && selection == 1) {
-  //   letter_pos = 0;
-  // }
-  // switch (selection) {
-  //   case 0 : {
+  
+  const uint8_t selection = GetHorizontalPos();
+  if (Rgt() && selection == 0) char_pos = 1;
+  if (Lft() && selection == 1) {
+    letter_pos = 0;
+    char_pos = 0;
+  }
+  switch (selection) {
+    case 0 : {
+      const uint32_t max_slots = 8;
+      Scrolling(&letter_pos, max_slots, -UpDwn());
+    } break;
+    case 1 : {
+      if (has_rounds) {
+        // const uint8_t max_records     = GetMaxLocalRecords(),
+        //               current_records = constrain(amnt_rounds, 0, max_records - 1);
+        // Scrolling(&letter_pos, current_records, -UpDwn());
+        // last_record = GetVerticalPos();
+      }
+    } break;
+    case 2 : {
+      // const uint8_t index = 0;
+      // Scrolling(&letter_pos, 7, -UpDwn());
 
-  //   } break;
-  //   case 1 : {
-  //     if (has_rounds) {
-  //       const uint8_t max_records     = GetMaxLocalRecords(),
-  //                     current_records = constrain(amnt_rounds, 0, max_records - 1);
-  //       Scrolling(&letter_pos, current_records, -UpDwn());
-  //       last_record = GetVerticalPos();
-  //     }
-  //   } break;
-  //   case 2 : {
-  //     const uint8_t index = 0;
-  //     Scrolling(&letter_pos, 7, -UpDwn());
-
-  //   } break;
-  // }
+    } break;
+  }
   
   if (Cnfrm()) { ExitToMenu(2); }
 }
